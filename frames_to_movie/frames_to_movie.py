@@ -33,6 +33,11 @@ def read_and_convert_image(filepath):
 def resize_image(frame, scale_x=1, scale_y=1):
     """
     Rescale the image
+
+    Args:
+        - frame: Frame as numpy array
+        - scale_x: Horizontal rescale factor
+        - scale_y: Vertical rescale factor
     """
     if scale_x is None:
         scale_x = 1
