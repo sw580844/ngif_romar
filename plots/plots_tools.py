@@ -181,8 +181,8 @@ def make_plot_pool_size_over_time(logfile_df, save_folder_path=None, show_plot=F
                 fig.savefig(save_path)
         if show_plot:
             plt.show()
-
-    return
+    fig.tight_layout()
+    return fig
 
 def make_plot_powder_flow_over_time(logfile_df, save_folder_path=None, show_plot=False,
     pre_process=False, with_and_without_preprocess=False):
@@ -243,7 +243,8 @@ def make_plot_powder_flow_over_time(logfile_df, save_folder_path=None, show_plot
                 fig.savefig(save_path)
         if show_plot:
             plt.show()
-    return
+    fig.tight_layout()
+    return fig
 
 def make_plot_protection_glass_temp(logfile_df, save_folder_path=None, show_plot=False,
     pre_process=False, with_and_without_preprocess=False):
@@ -305,4 +306,5 @@ def make_plot_protection_glass_temp(logfile_df, save_folder_path=None, show_plot
                 fig.savefig(save_path)
         if show_plot:
             plt.show()
-    return
+    fig.tight_layout()
+    return fig
