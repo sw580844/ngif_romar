@@ -189,6 +189,9 @@ def post_process_log_data(data_df):
 
         Used to keep values where the laser has been on for a while
 
+        TODO: test alternative
+        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.groupby.GroupBy.cumcount.html
+
         """
         result = np.zeros_like(ts)
         idx_last_zero = 0
@@ -222,7 +225,7 @@ def post_process_log_data(data_df):
         return result
     data_df["laser_off_time(ms)"] = time_since_zero(data_df["t"], data_df["LaserPower"])
 
-    # xyz coordinates in frame of part/stage (using a, c rotation coordinates)
+    
     def part_coords(xs,ys,zs,angle_as,angle_cs): # rotate (xyz)_room, using (a,c), to stage frame of reference
         xp, yp, zp = [0]*len(xs), [0]*len(ys), [0]*len(zs)
         for i in range(len(xs)):
@@ -238,7 +241,31 @@ def post_process_log_data(data_df):
             xp[i], yp[i], zp[i] = np.matmul(R,(xs[i],ys[i],zs[i]))
         return xp,yp,zp
     data_df["xpart"],data_df["ypart"],data_df["zpart"] = part_coords(data_df['x'],data_df['y'],data_df['z'],data_df['a'],data_df['c'])
+    
+    def add_toolpath_key(data_df):
+        """
+        Adds a key identifying different toolpaths to pandas df
 
+        Assumes "laser_on_time(ms)" column has already been added
+        # xyz coordinates in frame of part/stage (using a, c rotation coordinates)
+        Args:
+            - data_df : Pandas dataframe as produced by tools.read_data, with a laser_on_time(ms)
+                column
+
+        Returns:
+            data_df
+        """
+        start_new_path = np.zeros(len(data_df))
+        # Create a flag array of zero or one used to flag when laser switches off
+        start_new_path[np.diff(data_df["laser_on_time(ms)"], prepend=0) < 0] = 1
+        # This flag array can be used to designate different regions by cumsum
+        toolpath_key = np.cumsum(start_new_path)
+        # Set the parts of the toolpath_key array where the laser is off to -1
+        toolpath_key[data_df["laser_on_time(ms)"] == 0] = -1
+        data_df["toolpath_key"] = toolpath_key
+        return data_df
+
+    data_df = add_toolpath_key(data_df)
     # Preprocessing finished
     return data_df
 
