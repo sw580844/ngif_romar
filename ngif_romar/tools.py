@@ -225,12 +225,29 @@ def post_process_log_data(data_df):
         return result
     data_df["laser_off_time(ms)"] = time_since_zero(data_df["t"], data_df["LaserPower"])
 
+    
+    def part_coords(xs,ys,zs,angle_as,angle_cs): # rotate (xyz)_room, using (a,c), to stage frame of reference
+        xp, yp, zp = [0]*len(xs), [0]*len(ys), [0]*len(zs)
+        for i in range(len(xs)):
+            a,c = angle_as[i]*np.pi/180, angle_cs[i]*np.pi/180 # extract angles
+            sa, ca = np.sin(a), np.cos(a) # trig fns for easier reference
+            sc, cc = np.sin(c), np.cos(c)
+            # create rotation matrix
+            R = np.array([[cc, -sc*ca, sa*sc],
+                        [sc, cc*ca, -sa*cc],
+                        [0, sa, cc]
+                        ])
+            # apply rotation
+            xp[i], yp[i], zp[i] = np.matmul(R,(xs[i],ys[i],zs[i]))
+        return xp,yp,zp
+    data_df["xpart"],data_df["ypart"],data_df["zpart"] = part_coords(data_df['x'],data_df['y'],data_df['z'],data_df['a'],data_df['c'])
+    
     def add_toolpath_key(data_df):
         """
         Adds a key identifying different toolpaths to pandas df
 
         Assumes "laser_on_time(ms)" column has already been added
-
+        # xyz coordinates in frame of part/stage (using a, c rotation coordinates)
         Args:
             - data_df : Pandas dataframe as produced by tools.read_data, with a laser_on_time(ms)
                 column
