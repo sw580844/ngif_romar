@@ -189,6 +189,9 @@ def post_process_log_data(data_df):
 
         Used to keep values where the laser has been on for a while
 
+        TODO: test alternative
+        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.groupby.GroupBy.cumcount.html
+
         """
         result = np.zeros_like(ts)
         idx_last_zero = 0
@@ -222,7 +225,30 @@ def post_process_log_data(data_df):
         return result
     data_df["laser_off_time(ms)"] = time_since_zero(data_df["t"], data_df["LaserPower"])
 
+    def add_toolpath_key(data_df):
+        """
+        Adds a key identifying different toolpaths to pandas df
 
+        Assumes "laser_on_time(ms)" column has already been added
+
+        Args:
+            - data_df : Pandas dataframe as produced by tools.read_data, with a laser_on_time(ms)
+                column
+
+        Returns:
+            data_df
+        """
+        start_new_path = np.zeros(len(data_df))
+        # Create a flag array of zero or one used to flag when laser switches off
+        start_new_path[np.diff(data_df["laser_on_time(ms)"], prepend=0) < 0] = 1
+        # This flag array can be used to designate different regions by cumsum
+        toolpath_key = np.cumsum(start_new_path)
+        # Set the parts of the toolpath_key array where the laser is off to -1
+        toolpath_key[data_df["laser_on_time(ms)"] == 0] = -1
+        data_df["toolpath_key"] = toolpath_key
+        return data_df
+
+    data_df = add_toolpath_key(data_df)
     # Preprocessing finished
     return data_df
 
