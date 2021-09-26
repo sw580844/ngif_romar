@@ -135,7 +135,7 @@ def pack_files(input_folder, output_filepath, fps, max_frames=None, scale_x=None
             )
 
         # rotate frame to ^y, >x orientation
-        frame = imutils.rotate(frame, angle=-angle*180/np.pi)
+        frame = imutils.rotate(frame, angle= -1*angle*180/np.pi)
         # normalise and optionally rescale frame
         frame = cv2.normalize(frame, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         if scale_x or scale_y:
