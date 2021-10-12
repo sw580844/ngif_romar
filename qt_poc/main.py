@@ -10,7 +10,7 @@ import os
 import argparse
 
 
-
+import pandas as pd
 from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2 import QtWidgets
 # from PySide2.QtCore import QFile
@@ -137,8 +137,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("Log data df empty")
             return
 
+        plot_subset = self.log_data_df
+        if bool(self.plot_laser_on.checkState()):
+            plot_subset = plot_subset[
+                plot_subset["laser_on_time(ms)"] > 200
+            ]
+        else:
+            pass
+        # Putting into ms bc we can't have fraction rolling at this stage
+        rolling_mean_window = int(self.rolling_window_seconds.value() * 1000)
+        if rolling_mean_window > 0.1:
+            # Figure out how to do without redoing index
+            # Note, pandas rolling has a backwards facing window, and resample has an even window
+            # https://pandas.pydata.org/pandas-docs/version/1.1.5/user_guide/computation.html
+            # Rework, warning about setting values on copy of slice
+            plot_subset["t_datetime"] = pd.to_datetime(plot_subset["t(s)"], unit="s")
+            # plot_subset = plot_subset.set_index(plot_subset["t_datetime"])
+            plot_subset = plot_subset.rolling(
+                "{}ms".format(rolling_mean_window), on="t_datetime"
+            ).mean()
+
         self.ax1.cla()
-        self.ax1.plot(self.log_data_df["t(min)"], self.log_data_df["meltpoolSize"])
+        self.ax1.plot(plot_subset["t(min)"], plot_subset["meltpoolSize"])
         self.ax1.set_xlabel("Time (min)")
         self.ax1.set_ylabel("Meltpool size (pix)")
         self.ax1.set_title("Meltpool size over time")
@@ -146,7 +166,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plotWidget_1.draw()
 
         self.ax2.cla()
-        self.ax2.plot(self.log_data_df["t(min)"], self.log_data_df["flowWatch"])
+        self.ax2.plot(plot_subset["t(min)"], plot_subset["flowWatch"])
         self.ax2.set_xlabel("Time (min)")
         self.ax2.set_ylabel("Flow watch sensor (AU)")
         self.ax2.set_title("Flow watch sensor over time")
@@ -154,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plotWidget_2.draw()
 
         self.ax3.cla()
-        self.ax3.plot(self.log_data_df["t(min)"], self.log_data_df["protectionGlasTemperature"])
+        self.ax3.plot(plot_subset["t(min)"], plot_subset["protectionGlasTemperature"])
         self.ax3.set_xlabel("Time (min)")
         self.ax3.set_ylabel("Protection glass temp (degC)")
         self.ax3.set_title("Protection glass temp over time over time")
