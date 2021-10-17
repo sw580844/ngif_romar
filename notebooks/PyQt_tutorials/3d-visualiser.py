@@ -95,7 +95,7 @@ class MyWindow(QMainWindow): # set up the main window widget
             filename = filename.replace("file:///", "").replace("\r\n", "").replace("%20", " ") # delete formatting characters
             filename = Path(filename) # convert to path
             
-        if filename.exists() and filename.suffix == ".dat": # if filename is a .stl file
+        if filename.exists() and filename.suffix == ".dat":
             e.accept() # accept the drag event; it's relevant
             self.droppedFilename = filename # save the filename
         else:
