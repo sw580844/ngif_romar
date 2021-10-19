@@ -49,3 +49,12 @@ NOTE: Order of import does matter, because you can end up in a situation where Q
 Got the POC basically up to the TK example level, sans some of the rolling mean plots
 
 Due to how conda/pip interact, setting up your own environment can be an issue, but Scott should be able to sort out (either install matplotlib and pyside completely from conda or pip, issues when mixing on Windows)
+
+2021-10-18
+Pyuic/pyqt5 also have issues with spaces in user profile
+In powershell, to find location: (Get-Command pyuic5.bat).Source
+Should return $env:USERPROFILE\anaconda3\Library\bin\pyuic5.bat
+
+Open up that batch file, see that it calls @USER/anaconda3\python.exe -m PyQt5.uic.pyuic %1 %2 %3 %4 %5 %6 %7 %8 %9 (with USER subbed in for user profile path)
+
+Do a similar python -m PyQt5.uic.pyuic .\main_window.ui -o temp.py to get similar result to prev

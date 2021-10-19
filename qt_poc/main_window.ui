@@ -16,9 +16,12 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
       <item>
        <layout class="QVBoxLayout" name="button_layout">
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
@@ -34,13 +37,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="make_plots_button">
-          <property name="text">
-           <string>Make plots</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="preprocess_file_checkbox">
           <property name="text">
            <string>Preprocess files</string>
@@ -51,25 +47,21 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="plot_laser_on">
-          <property name="text">
-           <string>Plot only when laser is on</string>
+         <widget class="QComboBox" name="combo_box_select_page">
+          <property name="currentText">
+           <string>Summary plots</string>
           </property>
+          <item>
+           <property name="text">
+            <string>Summary plots</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Per toolpath plots</string>
+           </property>
+          </item>
          </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Rolling window seconds</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="rolling_window_seconds"/>
-          </item>
-         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer">
@@ -87,27 +79,104 @@
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="0">
-         <widget class="QWidget" name="widget_PlotArea_1" native="true"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QWidget" name="widget_PlotArea_2" native="true"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Summary plots</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QWidget" name="widget_PlotArea_3" native="true"/>
-        </item>
-       </layout>
+       <widget class="QStackedWidget" name="stackedWidget_plots">
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="page">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="1" column="1">
+             <widget class="QWidget" name="widget_PlotArea_1" native="true"/>
+            </item>
+            <item row="1" column="2">
+             <widget class="QWidget" name="widget_PlotArea_2" native="true"/>
+            </item>
+            <item row="0" column="2">
+             <widget class="QWidget" name="widget_PlotArea_3" native="true"/>
+            </item>
+            <item row="0" column="1">
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Summary plots</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="make_plots_button">
+                <property name="text">
+                 <string>Make plots</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="plot_laser_on">
+                <property name="text">
+                 <string>Plot only when laser is on</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>Rolling window seconds</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QDoubleSpinBox" name="rolling_window_seconds"/>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_2">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="2">
+           <widget class="QWidget" name="widget_plot_area_flowwatch_per_toolpath" native="true"/>
+          </item>
+          <item row="1" column="2">
+           <widget class="QWidget" name="widget_plot_area_poolsize_per_toolpath" native="true"/>
+          </item>
+          <item row="0" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Per toolpath plots</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_make_toolpath_plots">
+              <property name="text">
+               <string>Make toolpath plots</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_plot_area_pooltemp_per_toolpath" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
       </item>
      </layout>
     </item>

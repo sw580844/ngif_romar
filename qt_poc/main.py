@@ -1,6 +1,10 @@
 """
 2021-09-24 Quick Pyside/QT POC
 
+Also check https://stackoverflow.com/questions/43947318/plotting-matplotlib-figure-inside-qwidget-using-qt-designer-form-and-pyqt5
+to make sure the process for taking a blank widget and turning into a matplotlib plot is appropriate
+
+Also page 168/178 of matplotlib for python developers
 
 """
 
@@ -14,6 +18,10 @@ import pandas as pd
 from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2 import QtWidgets
 # from PySide2.QtCore import QFile
+
+# Extra includes so py2exe picks them up, presumably this can be done elsehwere
+import cv2
+import numpy as np
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -62,6 +70,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
         self.make_plots_button.clicked.connect(self.make_plots)
+        self.pushButton_make_toolpath_plots.clicked.connect(self.make_toolpath_plots)
+        self.combo_box_select_page.currentIndexChanged.connect(
+            self.stackedWidget_plots.setCurrentIndex
+        )
+        # Default stacked: zero page
+        self.stackedWidget_plots.setCurrentIndex(0)
+
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
         parser = argparse.ArgumentParser()
@@ -92,6 +107,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.default_data_dir = None
 
+        self.setup_plot_areas()
+
+    def setup_plot_areas(self):
+        """
+        Catch all function to set up all the plot areas
+
+        It would be nice to do this in a more elegant way
+        """
 
         # Create a default plot
         self.plot_fig_1, self.ax1 = plt.subplots(tight_layout=True)
@@ -125,14 +148,122 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         # Set up other data?
-        # self.log_data_df = None
+
+        # Organisation: Put toolpath fig, ax into a dict (fig, ax)
+        self.toolpath_plots_dict = {
+            "poolsize_per_toolpath" : plt.subplots(tight_layout=True),
+            "pooltemp_per_toolpath" : plt.subplots(tight_layout=True),
+            "flowwatch_per_toolpath" : plt.subplots(tight_layout=True),
+        }
+        self.toolpath_canvas_dict = {
+            "poolsize_per_toolpath" : FigureCanvas(
+                self.toolpath_plots_dict["poolsize_per_toolpath"][0]),
+            "pooltemp_per_toolpath" : FigureCanvas(
+                self.toolpath_plots_dict["pooltemp_per_toolpath"][0]),
+            "flowwatch_per_toolpath" : FigureCanvas(
+                self.toolpath_plots_dict["flowwatch_per_toolpath"][0]),
+        }
+
+        lay_4 = QtWidgets.QVBoxLayout(self.widget_plot_area_poolsize_per_toolpath)
+        lay_4.setContentsMargins(0, 0, 0, 0)
+        lay_4.addWidget(self.toolpath_canvas_dict["poolsize_per_toolpath"])
+
+        lay_5 = QtWidgets.QVBoxLayout(self.widget_plot_area_pooltemp_per_toolpath)
+        lay_5.setContentsMargins(0, 0, 0, 0)
+        lay_5.addWidget(self.toolpath_canvas_dict["pooltemp_per_toolpath"])
+
+        lay_6 = QtWidgets.QVBoxLayout(self.widget_plot_area_flowwatch_per_toolpath)
+        lay_6.setContentsMargins(0, 0, 0, 0)
+        lay_6.addWidget(self.toolpath_canvas_dict["flowwatch_per_toolpath"])
+
+
+
+        return
+
+    def make_toolpath_plots(self):
+        """
+        Create the per toolpath plots
+
+        TODO: Issue, preprocess should have been on for toolpaths? Check?
+        """
+        if self.log_data_df is None:
+            print("Log Data df empty")
+            return
+        if "toolpath_key" not in self.log_data_df.keys():
+            print("ISSUE: Toolpath key not present in datafile")
+            return
+
+        # Subset out the toolpath key -1, which corresponds to those points with laser off
+        subset = self.log_data_df[
+            self.log_data_df["toolpath_key"] != -1
+        ]
+        groupby_mean = subset.groupby("toolpath_key").mean().reset_index()
+        groupby_std = subset.groupby("toolpath_key").std().reset_index()
+
+        ax = self.toolpath_plots_dict["poolsize_per_toolpath"][1]
+        ax.cla()
+        ax.plot(groupby_mean["toolpath_key"], groupby_mean["meltpoolSize"], label="Mean value")
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["meltpoolSize"] - groupby_std["meltpoolSize"],
+            linestyle="--", label="Mean - $\\sigma$"
+        )
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["meltpoolSize"] + groupby_std["meltpoolSize"],
+            linestyle="--", label="Mean + $\\sigma$"
+        )
+        ax.legend()
+        ax.set_xlabel("Toolpath key")
+        ax.set_ylabel("Meltpool size(pix)")
+        ax.set_title("Meltpool size per toolpath")
+        self.toolpath_canvas_dict["poolsize_per_toolpath"].draw()
+
+        ax = self.toolpath_plots_dict["pooltemp_per_toolpath"][1]
+        ax.cla()
+        ax.plot(groupby_mean["toolpath_key"], groupby_mean["meltpoolTemp"], label="Mean value")
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["meltpoolTemp"] - groupby_std["meltpoolTemp"],
+            linestyle="--", label="Mean - $\\sigma$"
+        )
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["meltpoolTemp"] + groupby_std["meltpoolTemp"],
+            linestyle="--", label="Mean + $\\sigma$"
+        )
+        ax.legend()
+        ax.set_xlabel("Toolpath key")
+        ax.set_ylabel("Meltpool temp(degC?)")
+        ax.set_title("Meltpool temp per toolpath")
+        self.toolpath_canvas_dict["pooltemp_per_toolpath"].draw()
+
+        ax = self.toolpath_plots_dict["flowwatch_per_toolpath"][1]
+        ax.cla()
+        ax.plot(groupby_mean["toolpath_key"], groupby_mean["flowWatch"], label="Mean value")
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["flowWatch"] - groupby_std["flowWatch"],
+            linestyle="--", label="Mean - $\\sigma$"
+        )
+        ax.plot(
+            groupby_mean["toolpath_key"],
+            groupby_mean["flowWatch"] + groupby_std["flowWatch"],
+            linestyle="--", label="Mean + $\\sigma$"
+        )
+        ax.legend()
+        ax.set_xlabel("Toolpath key")
+        ax.set_ylabel("Flow watch sensor (AU)")
+        ax.set_title("Flow watch per toolpath")
+        self.toolpath_canvas_dict["flowwatch_per_toolpath"].draw()
+
+        return
 
 
     def make_plots(self):
         """
         Callback function to make plots, assumes data df has been loaded in but squashes this error
         """
-        print("Make plots triggered")
         if self.log_data_df is None:
             print("Log data df empty")
             return
@@ -177,20 +308,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ax3.plot(plot_subset["t(min)"], plot_subset["protectionGlasTemperature"])
         self.ax3.set_xlabel("Time (min)")
         self.ax3.set_ylabel("Protection glass temp (degC)")
-        self.ax3.set_title("Protection glass temp over time over time")
+        self.ax3.set_title("Protection glass temperature")
         # self.plot_fig_3.tight_layout()
         self.plotWidget_3.draw()
 
-
-
-
         return
-
-
 
     def load_file(self):
         """
-        Used to open up the file selector to find path to data file, and then calls 
+        Used to open up the file selector to find path to data file, and then calls
         load_and_proc_file to load it in
         """
         # Use dir to set default folder
@@ -204,7 +330,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.load_and_proc_file(file_path, preprocess)
 
-
         return
 
     def load_and_proc_file(self, file_path, preprocess):
@@ -216,7 +341,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if preprocess:
             print("Preprocessing")
             self.log_data_df = tools.post_process_log_data(self.log_data_df)
-
 
 
 if __name__ == "__main__":
