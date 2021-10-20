@@ -61,6 +61,11 @@
             <string>Per toolpath plots</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Arbitrary variable plotting</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -81,20 +86,20 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget_plots">
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="2">
+             <widget class="QWidget" name="widget_PlotArea_3" native="true"/>
+            </item>
             <item row="1" column="1">
              <widget class="QWidget" name="widget_PlotArea_1" native="true"/>
             </item>
             <item row="1" column="2">
              <widget class="QWidget" name="widget_PlotArea_2" native="true"/>
-            </item>
-            <item row="0" column="2">
-             <widget class="QWidget" name="widget_PlotArea_3" native="true"/>
             </item>
             <item row="0" column="1">
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -173,6 +178,91 @@
           </item>
           <item row="1" column="1">
            <widget class="QWidget" name="widget_plot_area_pooltemp_per_toolpath" native="true"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_3">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout_4" rowstretch="0,0" columnstretch="1,2">
+            <item row="0" column="1">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Arbitrary var. plotting</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="push_button_populate_arb_var_boxes">
+                <property name="text">
+                 <string>Repopulate variables</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="push_button_make_arb_var_plots">
+                <property name="text">
+                 <string>Make arbitrary variable plots</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="check_box_arb_var_plot_only_when_laser_on">
+                <property name="text">
+                 <string>Plot only when laser on</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_10">
+                  <property name="text">
+                   <string>X var</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="combo_box_arb_var_x"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+                <item>
+                 <widget class="QLabel" name="label_8">
+                  <property name="text">
+                   <string>Y var</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="combo_box_arb_var_y"/>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="1">
+             <widget class="QWidget" name="widget_PlotArea_arb_variable_plotting" native="true"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

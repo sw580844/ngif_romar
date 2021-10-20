@@ -76,6 +76,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         # Default stacked: zero page
         self.stackedWidget_plots.setCurrentIndex(0)
+        # Arbitrary plotting buttons etc
+        self.push_button_populate_arb_var_boxes.clicked.connect(self.populate_arb_var_combo_boxes)
+        self.push_button_make_arb_var_plots.clicked.connect(self.make_arb_var_plots)
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -176,9 +179,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lay_6.setContentsMargins(0, 0, 0, 0)
         lay_6.addWidget(self.toolpath_canvas_dict["flowwatch_per_toolpath"])
 
+        # Arbitrary var plotting
+        # Objects will be fig, ax, canvas
+        self.arb_var_plotting_objects = list(plt.subplots(tight_layout=True))
+        self.arb_var_plotting_objects.append(
+            FigureCanvas(self.arb_var_plotting_objects[0])
+        )
+        lay_7 = QtWidgets.QVBoxLayout(self.widget_PlotArea_arb_variable_plotting)
+        lay_7.setContentsMargins(0, 0, 0, 0)
+        lay_7.addWidget(self.arb_var_plotting_objects[2])
+
+
 
 
         return
+
+    def make_arb_var_plots(self):
+        """
+        Generate the arbitrary variable plots
+        """
+        if self.log_data_df is None:
+            print("Log Data df empty")
+            return
+        plot_subset = self.log_data_df
+        if bool(self.check_box_arb_var_plot_only_when_laser_on.checkState()):
+            plot_subset = plot_subset[
+                plot_subset["laser_on_time(ms)"] > 200
+            ]
+        else:
+            pass
+
+        columns = self.log_data_df.keys()
+        x_col = columns[self.combo_box_arb_var_x.currentIndex()]
+        y_col = columns[self.combo_box_arb_var_y.currentIndex()]
+
+        ax = self.arb_var_plotting_objects[1]
+        ax.cla()
+        ax.plot(plot_subset[x_col], plot_subset[y_col])
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        self.arb_var_plotting_objects[2].draw()
+        return
+
 
     def make_toolpath_plots(self):
         """
@@ -341,6 +383,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if preprocess:
             print("Preprocessing")
             self.log_data_df = tools.post_process_log_data(self.log_data_df)
+
+    def populate_arb_var_combo_boxes(self):
+        """
+        This readjusts the comboboxes according to what columns are available in the data df
+        """
+
+        if self.log_data_df is None:
+            print("Log data df empty")
+            return
+
+
+        columns = self.log_data_df.keys()
+
+        self.combo_box_arb_var_x.clear()
+        self.combo_box_arb_var_x.addItems(columns)
+        self.combo_box_arb_var_y.clear()
+        self.combo_box_arb_var_y.addItems(columns)
 
 
 if __name__ == "__main__":
