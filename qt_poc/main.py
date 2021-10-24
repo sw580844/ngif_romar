@@ -9,6 +9,7 @@ Also page 168/178 of matplotlib for python developers
 """
 
 
+import re
 import sys
 import os
 import argparse
@@ -26,6 +27,8 @@ from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox
 )
 from PyQt5.uic import loadUi
+import pyqtgraph.opengl as gl
+
 
 # Extra includes so py2exe picks them up, presumably this can be done elsehwere
 import cv2
@@ -34,6 +37,8 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from matplotlib.colors import to_rgba_array
+from matplotlib import cm
 
 from main_window_ui import Ui_MainWindow
 
@@ -68,6 +73,28 @@ class MatplotlibWidget(FigureCanvas):
         self.axes.set_ylabel(ylabel)
         self.axes.set_title(title)
 
+def threeDeePlotVals(df,partFrame=True,alpha=0.5):
+        """
+        Generates coordinates and colours for gl scatterplot from dataframe
+        24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
+        """
+        # get spatial coords
+        if partFrame:
+            coords=df[['xpart','ypart','zpart']].to_numpy()
+        else:
+            coords=df[['x','y','z']].to_numpy()
+
+        # now colours. These need to be converted to (N,4) RGBA array
+        vals = df['flowWatch'].to_numpy() # extract values
+        # normalise values to [0,1]
+        if np.unique(vals).shape[0]==1: # if constant
+            pass
+        else:
+            vals=(vals-np.min(vals))/np.ptp(vals) # -min moves lowest val to 0, division by range sets range to 1
+        # then convert to colors using a colormap
+        cols = cm.plasma(vals) # using the 'jet' colormap
+        return coords, to_rgba_array(cols, alpha)
+
 
 # Also try https://stackoverflow.com/questions/6723527/getting-pyside-to-work-with-matplotlib
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -90,6 +117,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Arbitrary plotting buttons etc
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
+        # 3D plot button
+        self.page4_pushbutton_makeplot.clicked.connect(self.make_3D_plot)
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -122,6 +151,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.default_data_dir = None
 
         self.setup_plot_areas()
+
+        self.currentScatter = None # gl scatter object, initially blank
+
 
     def setup_plot_areas(self):
         """
@@ -194,9 +226,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         p3bottomright = QtWidgets.QVBoxLayout(self.page3_bottomright)
         p3bottomright.setContentsMargins(0, 0, 0, 0)
-        p3bottomright.addWidget(self.arb_var_plotting_objects[2])
+        p3bottomright.addWidget(self.arb_var_plotting_objects[2])   
 
+        ## 3D plot
+        # add layout
+        p4centre = QtWidgets.QVBoxLayout(self.page4_centre) # layout of the 3D plot widget
+        # add gl viewer to layout
+        self.viewer = gl.GLViewWidget() # basic widget for displaying 3D data
+        p4centre.addWidget(self.viewer, 1) # add widget to layout
+        self.viewer.setWindowTitle('NGIF Data Viewer') # title of the 3D view widget
+        self.viewer.setCameraPosition(distance=40) # camera pos (centre , dist, elevation, azumith)
+        # add grid to the viewer
+        g = gl.GLGridItem()
+        g.setSize(200,200)
+        g.setSpacing(5,5)
+        self.viewer.addItem(g)
         return
+
+    def make_3D_plot(self):
+        """
+        Generate interactive 3D plot
+        """
+        # clear gl of preexisting scatter
+        if self.currentScatter: # remove any preexisting scatter
+            self.viewer.removeItem(self.currentScatter)
+        # load data, removing laser off sections if desired
+        if self.log_data_df is None:
+            print("Log Data df empty")
+            return
+        plot_subset = self.log_data_df
+        if bool(self.page4_checkBox_laseron.checkState()):
+            plot_subset = plot_subset[
+                plot_subset["laser_on_time(ms)"] > 200
+            ]
+        else:
+            pass
+        
+        coords, colours = threeDeePlotVals(plot_subset)
+        scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
+        scatter.setGLOptions('opaque')
+        self.viewer.addItem(scatter)
+    
+        self.currentScatter=scatter # save current scatter
+
+        pass
+    
 
     def make_arb_var_plots(self):
         """
@@ -206,7 +280,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("Log Data df empty")
             return
         plot_subset = self.log_data_df
-        if bool(self.check_box_arb_var_plot_only_when_laser_on.checkState()):
+        if bool(self.page3_checkbox_laser_on.checkState()):
             plot_subset = plot_subset[
                 plot_subset["laser_on_time(ms)"] > 200
             ]

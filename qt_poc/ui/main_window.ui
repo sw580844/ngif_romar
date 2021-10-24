@@ -91,7 +91,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -279,15 +279,42 @@
          <widget class="QWidget" name="gridLayoutWidget_2">
           <property name="geometry">
            <rect>
-            <x>240</x>
-            <y>170</y>
-            <width>160</width>
-            <height>80</height>
+            <x>2</x>
+            <y>4</y>
+            <width>701</width>
+            <height>561</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
            <item row="0" column="0">
-            <widget class="QOpenGLWidget" name="page4_GLWidget"/>
+            <widget class="QPushButton" name="page4_pushbutton_makeplot">
+             <property name="minimumSize">
+              <size>
+               <width>699</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Make 3D Plot</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="page4_checkBox_laseron">
+             <property name="text">
+              <string>Plot only when laser on</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QWidget" name="page4_centre" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>699</width>
+               <height>507</height>
+              </size>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>

@@ -6,3 +6,4 @@ pandas
 opencv
 pylint
 PySide2, or PyQt5
+pyopengl
