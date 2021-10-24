@@ -13,7 +13,7 @@ import re
 import sys
 import os
 import argparse
-
+from pathlib import Path
 import pandas as pd
 
 #from PySide2.QtWidgets import QApplication, QMainWindow
@@ -73,27 +73,6 @@ class MatplotlibWidget(FigureCanvas):
         self.axes.set_ylabel(ylabel)
         self.axes.set_title(title)
 
-def threeDeePlotVals(df,partFrame=True,alpha=0.5):
-        """
-        Generates coordinates and colours for gl scatterplot from dataframe
-        24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
-        """
-        # get spatial coords
-        if partFrame:
-            coords=df[['xpart','ypart','zpart']].to_numpy()
-        else:
-            coords=df[['x','y','z']].to_numpy()
-
-        # now colours. These need to be converted to (N,4) RGBA array
-        vals = df['flowWatch'].to_numpy() # extract values
-        # normalise values to [0,1]
-        if np.unique(vals).shape[0]==1: # if constant
-            pass
-        else:
-            vals=(vals-np.min(vals))/np.ptp(vals) # -min moves lowest val to 0, division by range sets range to 1
-        # then convert to colors using a colormap
-        cols = cm.plasma(vals) # using the 'jet' colormap
-        return coords, to_rgba_array(cols, alpha)
 
 
 # Also try https://stackoverflow.com/questions/6723527/getting-pyside-to-work-with-matplotlib
@@ -153,6 +132,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setup_plot_areas()
 
         self.currentScatter = None # gl scatter object, initially blank
+        self.lastDir = None # last visited directory, for reference when loading files
 
 
     def setup_plot_areas(self):
@@ -262,15 +242,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             pass
         
-        coords, colours = threeDeePlotVals(plot_subset)
+        coords, colours = self.threeDeePlotVals(plot_subset)
         scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
         scatter.setGLOptions('opaque')
         self.viewer.addItem(scatter)
     
         self.currentScatter=scatter # save current scatter
+        return
 
-        pass
-    
+    def threeDeePlotVals(df,partFrame=True,alpha=0.5):
+        """
+        Generates coordinates and colours for gl scatterplot from dataframe
+        24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
+        """
+        # get spatial coords
+        if partFrame:
+            coords=df[['xpart','ypart','zpart']].to_numpy()
+        else:
+            coords=df[['x','y','z']].to_numpy()
+
+        # now colours. These need to be converted to (N,4) RGBA array
+        vals = df['flowWatch'].to_numpy() # extract values
+        # normalise values to [0,1]
+        if np.unique(vals).shape[0]==1: # if constant
+            pass
+        else:
+            vals=(vals-np.min(vals))/np.ptp(vals) # -min moves lowest val to 0, division by range sets range to 1
+        # then convert to colors using a colormap
+        cols = cm.plasma(vals) # using the 'jet' colormap
+        return coords, to_rgba_array(cols, alpha)
+
 
     def make_arb_var_plots(self):
         """
@@ -440,15 +441,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         load_and_proc_file to load it in
         """
         # Use dir to set default folder
-
-        file_path, selector_type = QtWidgets.QFileDialog.getOpenFileName(self.default_data_dir)
+        directory = Path("")
+        if self.lastDir: # if previous directory, start from there
+            directory = self.lastDir
+    
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", str(directory), "Data file (*.dat)")
         preprocess = bool(self.preprocess_file_checkbox.checkState())
-        print("file_path is {}".format(file_path))
-        # Set default data path to where the file was
-        self.default_data_dir = os.path.dirname(file_path)
-        print("Set default data dir to {} after file load".format(self.default_data_dir))
-
-        self.load_and_proc_file(file_path, preprocess)
+    
+        if file_path: # if file chosen
+            print("file_path is {}".format(file_path))
+            self.lastDir = Path(file_path).parent
+            self.load_and_proc_file(file_path, preprocess)
 
         return
 
