@@ -13,11 +13,19 @@ import sys
 import os
 import argparse
 
-
 import pandas as pd
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2 import QtWidgets
+
+#from PySide2.QtWidgets import QApplication, QMainWindow
+#from PySide2 import QtWidgets
 # from PySide2.QtCore import QFile
+
+# PyQt stuff (Scott uses Pyside, commented out above)
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import (
+
+    QApplication, QDialog, QMainWindow, QMessageBox
+)
+from PyQt5.uic import loadUi
 
 # Extra includes so py2exe picks them up, presumably this can be done elsehwere
 import cv2
@@ -27,13 +35,16 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from ui_main_window import Ui_MainWindow
+from main_window_ui import Ui_MainWindow
+
 
 try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
     # If not in path/installed, use relative import
-    module_path = os.path.abspath(os.path.join(".."))
+    #module_path = os.path.abspath(os.path.join("../../"))
+    # hard coded
+    module_path = r"C:\Users\uqthirsc\Repos\Code\ngif_romar"
     sys.path.append(module_path)
     from ngif_romar import tools
 
@@ -71,14 +82,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.open_file_button.clicked.connect(self.load_file)
         self.make_plots_button.clicked.connect(self.make_plots)
         self.pushButton_make_toolpath_plots.clicked.connect(self.make_toolpath_plots)
-        self.combo_box_select_page.currentIndexChanged.connect(
-            self.stackedWidget_plots.setCurrentIndex
+        self.combo_box_select_page.currentIndexChanged.connect( # change page to the value stored in the combo box
+            self.stackedWidget.setCurrentIndex
         )
         # Default stacked: zero page
-        self.stackedWidget_plots.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(0)
         # Arbitrary plotting buttons etc
-        self.push_button_populate_arb_var_boxes.clicked.connect(self.populate_arb_var_combo_boxes)
-        self.push_button_make_arb_var_plots.clicked.connect(self.make_arb_var_plots)
+        self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
+        self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -124,34 +135,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plotWidget_1 = FigureCanvas(self.plot_fig_1)
 
         # Here turn each of the QWidget plot areas we created into the designer into a layout, and
-        # add the plot widgets into it
-        lay_1 = QtWidgets.QVBoxLayout(self.widget_PlotArea_1)
-        lay_1.setContentsMargins(0, 0, 0, 0)
-        lay_1.addWidget(self.plotWidget_1)
+        # First 3 layouts are the three timeseries plots on page 1    
+        p1topright = QtWidgets.QVBoxLayout(self.page1_topright) # this is the line that links handwritten code to the QtDesigner code (widget_PlotArea_1 is from the designer)
+        p1topright.setContentsMargins(0, 0, 0, 0)
+        p1topright.addWidget(self.plotWidget_1)
 
         # Create a default plot
         self.plot_fig_2, self.ax2 = plt.subplots(tight_layout=True)
         self.plotWidget_2 = FigureCanvas(self.plot_fig_2)
 
         # Here turn each of the QWidget plot areas we created into the designer into a layout, and
-        # add the plot widgets into it
-        lay_2 = QtWidgets.QVBoxLayout(self.widget_PlotArea_2)
-        lay_2.setContentsMargins(0, 0, 0, 0)
-        lay_2.addWidget(self.plotWidget_2)
+        p1bottomright = QtWidgets.QVBoxLayout(self.page1_bottomright)
+        p1bottomright.setContentsMargins(0, 0, 0, 0)
+        p1bottomright.addWidget(self.plotWidget_2)
 
         # Create a default plot
         self.plot_fig_3, self.ax3 = plt.subplots(tight_layout=True)
         self.plotWidget_3 = FigureCanvas(self.plot_fig_3)
 
         # Here turn each of the QWidget plot areas we created into the designer into a layout, and
-        # add the plot widgets into it
-        lay_3 = QtWidgets.QVBoxLayout(self.widget_PlotArea_3)
-        lay_3.setContentsMargins(0, 0, 0, 0)
-        lay_3.addWidget(self.plotWidget_3)
+        p1bottomleft = QtWidgets.QVBoxLayout(self.page1_bottomleft)
+        p1bottomleft.setContentsMargins(0, 0, 0, 0)
+        p1bottomleft.addWidget(self.plotWidget_3)
 
-
-        # Set up other data?
-
+        # Toolpath plots
         # Organisation: Put toolpath fig, ax into a dict (fig, ax)
         self.toolpath_plots_dict = {
             "poolsize_per_toolpath" : plt.subplots(tight_layout=True),
@@ -167,17 +174,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.toolpath_plots_dict["flowwatch_per_toolpath"][0]),
         }
 
-        lay_4 = QtWidgets.QVBoxLayout(self.widget_plot_area_poolsize_per_toolpath)
-        lay_4.setContentsMargins(0, 0, 0, 0)
-        lay_4.addWidget(self.toolpath_canvas_dict["poolsize_per_toolpath"])
+        p2bottomleft = QtWidgets.QVBoxLayout(self.page2_bottomleft)
+        p2bottomleft.setContentsMargins(0, 0, 0, 0)
+        p2bottomleft.addWidget(self.toolpath_canvas_dict["poolsize_per_toolpath"])
 
-        lay_5 = QtWidgets.QVBoxLayout(self.widget_plot_area_pooltemp_per_toolpath)
-        lay_5.setContentsMargins(0, 0, 0, 0)
-        lay_5.addWidget(self.toolpath_canvas_dict["pooltemp_per_toolpath"])
+        p2bottomright = QtWidgets.QVBoxLayout(self.page2_bottomright)
+        p2bottomright.setContentsMargins(0, 0, 0, 0)
+        p2bottomright.addWidget(self.toolpath_canvas_dict["pooltemp_per_toolpath"])
 
-        lay_6 = QtWidgets.QVBoxLayout(self.widget_plot_area_flowwatch_per_toolpath)
-        lay_6.setContentsMargins(0, 0, 0, 0)
-        lay_6.addWidget(self.toolpath_canvas_dict["flowwatch_per_toolpath"])
+        p2topright = QtWidgets.QVBoxLayout(self.page2_topright)
+        p2topright.setContentsMargins(0, 0, 0, 0)
+        p2topright.addWidget(self.toolpath_canvas_dict["flowwatch_per_toolpath"])
 
         # Arbitrary var plotting
         # Objects will be fig, ax, canvas
@@ -185,12 +192,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arb_var_plotting_objects.append(
             FigureCanvas(self.arb_var_plotting_objects[0])
         )
-        lay_7 = QtWidgets.QVBoxLayout(self.widget_PlotArea_arb_variable_plotting)
-        lay_7.setContentsMargins(0, 0, 0, 0)
-        lay_7.addWidget(self.arb_var_plotting_objects[2])
-
-
-
+        p3bottomright = QtWidgets.QVBoxLayout(self.page3_bottomright)
+        p3bottomright.setContentsMargins(0, 0, 0, 0)
+        p3bottomright.addWidget(self.arb_var_plotting_objects[2])
 
         return
 
@@ -363,7 +367,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         # Use dir to set default folder
 
-        file_path, selector_type = QtWidgets.QFileDialog.getOpenFileName(dir=self.default_data_dir)
+        file_path, selector_type = QtWidgets.QFileDialog.getOpenFileName(self.default_data_dir)
         preprocess = bool(self.preprocess_file_checkbox.checkState())
         print("file_path is {}".format(file_path))
         # Set default data path to where the file was

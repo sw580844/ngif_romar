@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
       <item>
        <layout class="QVBoxLayout" name="button_layout">
         <property name="rightMargin">
@@ -66,6 +66,11 @@
             <string>Arbitrary variable plotting</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>3D visualisation</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -84,27 +89,27 @@
        </layout>
       </item>
       <item>
-       <widget class="QStackedWidget" name="stackedWidget_plots">
+       <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
-        <widget class="QWidget" name="page">
+        <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout">
             <item row="0" column="2">
-             <widget class="QWidget" name="widget_PlotArea_3" native="true"/>
+             <widget class="QWidget" name="page1_topright" native="true"/>
             </item>
             <item row="1" column="1">
-             <widget class="QWidget" name="widget_PlotArea_1" native="true"/>
+             <widget class="QWidget" name="page1_bottomleft" native="true"/>
             </item>
             <item row="1" column="2">
-             <widget class="QWidget" name="widget_PlotArea_2" native="true"/>
+             <widget class="QWidget" name="page1_bottomright" native="true"/>
             </item>
             <item row="0" column="1">
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <widget class="QLabel" name="label_3">
+               <widget class="QLabel" name="page1_label">
                 <property name="text">
                  <string>Summary plots</string>
                 </property>
@@ -149,35 +154,39 @@
         </widget>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="2">
-           <widget class="QWidget" name="widget_plot_area_flowwatch_per_toolpath" native="true"/>
-          </item>
-          <item row="1" column="2">
-           <widget class="QWidget" name="widget_plot_area_poolsize_per_toolpath" native="true"/>
-          </item>
           <item row="0" column="1">
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Per toolpath plots</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="1">
+             <widget class="QWidget" name="page2_topright" native="true"/>
             </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_make_toolpath_plots">
-              <property name="text">
-               <string>Make toolpath plots</string>
-              </property>
-             </widget>
+            <item row="0" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout">
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Per toolpath plots</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_make_toolpath_plots">
+                <property name="text">
+                 <string>Make toolpath plots</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="1">
+             <widget class="QWidget" name="page2_bottomright" native="true"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QWidget" name="page2_bottomleft" native="true"/>
             </item>
            </layout>
-          </item>
-          <item row="1" column="1">
-           <widget class="QWidget" name="widget_plot_area_pooltemp_per_toolpath" native="true"/>
           </item>
          </layout>
         </widget>
@@ -186,7 +195,7 @@
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_4" rowstretch="0,0" columnstretch="1,2">
             <item row="0" column="1">
-             <widget class="QLabel" name="label_6">
+             <widget class="QLabel" name="page3_topright">
               <property name="text">
                <string>TextLabel</string>
               </property>
@@ -195,28 +204,28 @@
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QLabel" name="label_5">
+               <widget class="QLabel" name="page3_label">
                 <property name="text">
                  <string>Arbitrary var. plotting</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="push_button_populate_arb_var_boxes">
+               <widget class="QPushButton" name="page3_pushbutton_repopulate">
                 <property name="text">
                  <string>Repopulate variables</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="push_button_make_arb_var_plots">
+               <widget class="QPushButton" name="page3_pushbutton_makeplots">
                 <property name="text">
                  <string>Make arbitrary variable plots</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="check_box_arb_var_plot_only_when_laser_on">
+               <widget class="QCheckBox" name="page3_checkbox_laser_on">
                 <property name="text">
                  <string>Plot only when laser on</string>
                 </property>
@@ -253,10 +262,10 @@
              </layout>
             </item>
             <item row="1" column="1">
-             <widget class="QWidget" name="widget_PlotArea_arb_variable_plotting" native="true"/>
+             <widget class="QWidget" name="page3_bottomright" native="true"/>
             </item>
             <item row="1" column="0">
-             <widget class="QLabel" name="label_7">
+             <widget class="QLabel" name="page3_bottomleft">
               <property name="text">
                <string>TextLabel</string>
               </property>
@@ -265,6 +274,23 @@
            </layout>
           </item>
          </layout>
+        </widget>
+        <widget class="QWidget" name="page_4">
+         <widget class="QWidget" name="gridLayoutWidget_2">
+          <property name="geometry">
+           <rect>
+            <x>240</x>
+            <y>170</y>
+            <width>160</width>
+            <height>80</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QOpenGLWidget" name="page4_GLWidget"/>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </widget>
       </item>
@@ -278,7 +304,7 @@
      <x>0</x>
      <y>0</y>
      <width>880</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
