@@ -71,6 +71,11 @@
             <string>3D visualisation</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Single toolpath plots</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -91,7 +96,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>3</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -282,7 +287,7 @@
             <x>2</x>
             <y>4</y>
             <width>701</width>
-            <height>561</height>
+            <height>564</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
@@ -319,6 +324,31 @@
           </layout>
          </widget>
         </widget>
+        <widget class="QWidget" name="page_single_toolpath">
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="1" column="1">
+             <widget class="SingleToolpathPlotsForm" name="single_toolpath_page" native="true"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>2</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
@@ -331,12 +361,20 @@
      <x>0</x>
      <y>0</y>
      <width>880</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SingleToolpathPlotsForm</class>
+   <extends>QWidget</extends>
+   <header>single_toolpaths_plots_code</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

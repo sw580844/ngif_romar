@@ -6,6 +6,9 @@ to make sure the process for taking a blank widget and turning into a matplotlib
 
 Also page 168/178 of matplotlib for python developers
 
+TODO: Check https://www.riverbankcomputing.com/static/Docs/PyQt5/designer.html and other sources
+for better ways of incorporating custom widgets in designer
+
 """
 
 
@@ -21,12 +24,10 @@ import pandas as pd
 # from PySide2.QtCore import QFile
 
 # PyQt stuff (Scott uses Pyside, commented out above)
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import (
-
     QApplication, QDialog, QMainWindow, QMessageBox
 )
-from PyQt5.uic import loadUi
 import pyqtgraph.opengl as gl
 
 
@@ -47,9 +48,7 @@ try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
     # If not in path/installed, use relative import
-    #module_path = os.path.abspath(os.path.join("../../"))
-    # hard coded
-    module_path = r"C:\Users\uqthirsc\Repos\Code\ngif_romar"
+    module_path = os.path.abspath(os.path.join(".."))
     sys.path.append(module_path)
     from ngif_romar import tools
 
@@ -62,7 +61,8 @@ class MatplotlibWidget(FigureCanvas):
     """
 
     def __init__(self, parent=None,xlabel='x',ylabel='y',title='Title'):
-        super(MatplotlibWidget, self).__init__(Figure())
+        # super(MatplotlibWidget, self).__init__(Figure())
+        super().__init__(Figure())
 
         self.setParent(parent)
         self.figure = Figure()
@@ -81,14 +81,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     Main window of POC app
     """
     def __init__(self):
-        super(MainWindow, self).__init__()
+        # super(MainWindow, self).__init__()
+        super().__init__()
         self.setupUi(self)
 
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
         self.make_plots_button.clicked.connect(self.make_plots)
         self.pushButton_make_toolpath_plots.clicked.connect(self.make_toolpath_plots)
-        self.combo_box_select_page.currentIndexChanged.connect( # change page to the value stored in the combo box
+        # change page to the value stored in the combo box
+        self.combo_box_select_page.currentIndexChanged.connect(
             self.stackedWidget.setCurrentIndex
         )
         # Default stacked: zero page
@@ -97,12 +99,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
         # 3D plot button
-        self.page4_pushbutton_makeplot.clicked.connect(self.make_3D_plot)
+        self.page4_pushbutton_makeplot.clicked.connect(self.make_3d_plot)
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
         parser = argparse.ArgumentParser()
-        parser.add_argument("--default_data_dir", help="Default data location")
         parser.add_argument("--default_data_file", help="Default data file to open at start")
         args = parser.parse_args()
         # If default data file specified, load in to start
@@ -117,22 +118,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.log_data_df = None
 
-        # Handle default data dir if specified
-        if args.default_data_dir and not args.default_data_file:
-            self.default_data_dir = os.path.abspath(args.default_data_dir)
-            if not os.path.exists(self.default_data_dir):
-                print("Default data dir specified but does not exist: '{}'".format(
-                    self.default_data_dir))
-                raise ValueError
-        elif args.default_data_file:
-            self.default_data_dir = os.path.dirname(os.path.abspath(args.default_data_file))
-        else:
-            self.default_data_dir = None
-
         self.setup_plot_areas()
 
-        self.currentScatter = None # gl scatter object, initially blank
-        self.lastDir = None # last visited directory, for reference when loading files
+        self.current_scatter = None # gl scatter object, initially blank
+        self.last_dir = None # last visited directory, for reference when loading files
 
 
     def setup_plot_areas(self):
@@ -144,31 +133,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Create a default plot
         self.plot_fig_1, self.ax1 = plt.subplots(tight_layout=True)
-        self.plotWidget_1 = FigureCanvas(self.plot_fig_1)
+        self.plot_widget_1 = FigureCanvas(self.plot_fig_1)
 
         # Here turn each of the QWidget plot areas we created into the designer into a layout, and
-        # First 3 layouts are the three timeseries plots on page 1    
-        p1topright = QtWidgets.QVBoxLayout(self.page1_topright) # this is the line that links handwritten code to the QtDesigner code (widget_PlotArea_1 is from the designer)
+        # First 3 layouts are the three timeseries plots on page 1
+        # This is the line that links handwritten code to the QtDesigner code (widget_PlotArea_1
+        # is from the designer)
+        p1topright = QtWidgets.QVBoxLayout(self.page1_topright)
         p1topright.setContentsMargins(0, 0, 0, 0)
-        p1topright.addWidget(self.plotWidget_1)
+        p1topright.addWidget(self.plot_widget_1)
 
         # Create a default plot
         self.plot_fig_2, self.ax2 = plt.subplots(tight_layout=True)
-        self.plotWidget_2 = FigureCanvas(self.plot_fig_2)
+        self.plot_widget_2 = FigureCanvas(self.plot_fig_2)
 
-        # Here turn each of the QWidget plot areas we created into the designer into a layout, and
+
         p1bottomright = QtWidgets.QVBoxLayout(self.page1_bottomright)
         p1bottomright.setContentsMargins(0, 0, 0, 0)
-        p1bottomright.addWidget(self.plotWidget_2)
+        p1bottomright.addWidget(self.plot_widget_2)
 
         # Create a default plot
         self.plot_fig_3, self.ax3 = plt.subplots(tight_layout=True)
-        self.plotWidget_3 = FigureCanvas(self.plot_fig_3)
+        self.plot_widget_3 = FigureCanvas(self.plot_fig_3)
 
-        # Here turn each of the QWidget plot areas we created into the designer into a layout, and
+
         p1bottomleft = QtWidgets.QVBoxLayout(self.page1_bottomleft)
         p1bottomleft.setContentsMargins(0, 0, 0, 0)
-        p1bottomleft.addWidget(self.plotWidget_3)
+        p1bottomleft.addWidget(self.plot_widget_3)
 
         # Toolpath plots
         # Organisation: Put toolpath fig, ax into a dict (fig, ax)
@@ -206,7 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         p3bottomright = QtWidgets.QVBoxLayout(self.page3_bottomright)
         p3bottomright.setContentsMargins(0, 0, 0, 0)
-        p3bottomright.addWidget(self.arb_var_plotting_objects[2])   
+        p3bottomright.addWidget(self.arb_var_plotting_objects[2])
 
         ## 3D plot
         # add layout
@@ -217,19 +208,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.viewer.setWindowTitle('NGIF Data Viewer') # title of the 3D view widget
         self.viewer.setCameraPosition(distance=40) # camera pos (centre , dist, elevation, azumith)
         # add grid to the viewer
-        g = gl.GLGridItem()
-        g.setSize(200,200)
-        g.setSpacing(5,5)
-        self.viewer.addItem(g)
+        grid_3d_plot = gl.GLGridItem()
+        grid_3d_plot.setSize(200,200)
+        grid_3d_plot.setSpacing(5,5)
+        self.viewer.addItem(grid_3d_plot)
         return
 
-    def make_3D_plot(self):
+    def make_3d_plot(self):
         """
         Generate interactive 3D plot
         """
         # clear gl of preexisting scatter
-        if self.currentScatter: # remove any preexisting scatter
-            self.viewer.removeItem(self.currentScatter)
+        if self.current_scatter: # remove any preexisting scatter
+            self.viewer.removeItem(self.current_scatter)
         # load data, removing laser off sections if desired
         if self.log_data_df is None:
             print("Log Data df empty")
@@ -241,33 +232,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ]
         else:
             pass
-        
-        coords, colours = self.threeDeePlotVals(plot_subset)
+
+        coords, colours = self.three_d_plot_vals(plot_subset)
         scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
         scatter.setGLOptions('opaque')
         self.viewer.addItem(scatter)
-    
-        self.currentScatter=scatter # save current scatter
+
+        self.current_scatter=scatter # save current scatter
         return
 
-    def threeDeePlotVals(df,partFrame=True,alpha=0.5):
+    def three_d_plot_vals(self, this_df, use_part_frame=True, alpha=0.5):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
         24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
         """
         # get spatial coords
-        if partFrame:
-            coords=df[['xpart','ypart','zpart']].to_numpy()
+        if use_part_frame:
+            coords=this_df[['xpart','ypart','zpart']].to_numpy()
         else:
-            coords=df[['x','y','z']].to_numpy()
+            coords=this_df[['x','y','z']].to_numpy()
 
         # now colours. These need to be converted to (N,4) RGBA array
-        vals = df['flowWatch'].to_numpy() # extract values
+        vals = this_df['flowWatch'].to_numpy() # extract values
         # normalise values to [0,1]
         if np.unique(vals).shape[0]==1: # if constant
             pass
         else:
-            vals=(vals-np.min(vals))/np.ptp(vals) # -min moves lowest val to 0, division by range sets range to 1
+            # -min moves lowest val to 0, division by range sets range to 1
+            vals=(vals-np.min(vals))/np.ptp(vals)
         # then convert to colors using a colormap
         cols = cm.plasma(vals) # using the 'jet' colormap
         return coords, to_rgba_array(cols, alpha)
@@ -415,7 +407,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ax1.set_ylabel("Meltpool size (pix)")
         self.ax1.set_title("Meltpool size over time")
         # self.plot_fig_1.tight_layout()
-        self.plotWidget_1.draw()
+        self.plot_widget_1.draw()
 
         self.ax2.cla()
         self.ax2.plot(plot_subset["t(min)"], plot_subset["flowWatch"])
@@ -423,7 +415,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ax2.set_ylabel("Flow watch sensor (AU)")
         self.ax2.set_title("Flow watch sensor over time")
         # self.plot_fig_2.tight_layout()
-        self.plotWidget_2.draw()
+        self.plot_widget_2.draw()
 
         self.ax3.cla()
         self.ax3.plot(plot_subset["t(min)"], plot_subset["protectionGlasTemperature"])
@@ -431,7 +423,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ax3.set_ylabel("Protection glass temp (degC)")
         self.ax3.set_title("Protection glass temperature")
         # self.plot_fig_3.tight_layout()
-        self.plotWidget_3.draw()
+        self.plot_widget_3.draw()
 
         return
 
@@ -442,22 +434,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         # Use dir to set default folder
         directory = Path("")
-        if self.lastDir: # if previous directory, start from there
-            directory = self.lastDir
-    
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", str(directory), "Data file (*.dat)")
+        if self.last_dir: # if previous directory, start from there
+            directory = self.last_dir
+
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Open file", str(directory), "Data file (*.dat)"
+        )
         preprocess = bool(self.preprocess_file_checkbox.checkState())
-    
+
         if file_path: # if file chosen
             print("file_path is {}".format(file_path))
-            self.lastDir = Path(file_path).parent
+            self.last_dir = Path(file_path).parent
             self.load_and_proc_file(file_path, preprocess)
 
         return
 
     def load_and_proc_file(self, file_path, preprocess):
         """
-        Given path to data file, loads and optionally preprocesses using methods in ngif_romar.tools
+        Given path to data file, loads and optionally preprocesses using methods in
+        ngif_romar.tools
         """
         self.metadata_dict, self.log_data_df = tools.read_data(file_path)
 
