@@ -99,7 +99,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
         # 3D plot button
-        self.page4_pushbutton_makeplot.clicked.connect(self.make_3D_plot)
+        self.page4_checkBox_laseron.setEnabled(False) # initially grey out laser on, because processing required
+        self.preprocess_file_checkbox.toggled.connect(self.page4_checkBox_laseron.setEnabled) # enabled 'laser on' plotting when preprocessing
+        self.preprocess_file_checkbox.toggled.connect(
+            lambda checked: not checked and self.page4_checkBox_laseron.setChecked(False) and self.page4_checkBox_laseron.setEnabled(False) # disable 'laser on' when not preprocessing
+        )
+        self.page4_checkBox_laseron.stateChanged.connect(lambda: self.make_3D_plot(self.page4_column)) # refresh 3D plot when laser status changed
+        self.page4_pushButton_glassTemp.clicked.connect(lambda: self.make_3D_plot("protectionGlasTemperature"))
+        self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3D_plot("meltpoolTemp"))
+        self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3D_plot("meltpoolSize"))
+        self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3D_plot("flowWatch"))
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -136,6 +145,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.currentScatter = None # gl scatter object, initially blank
         self.lastDir = None # last visited directory, for reference when loading files
         self.lastFile = None # last loaded file, for reloading
+        self.page4_column = None # desired column to plot in 3D plotting
 
     def setup_plot_areas(self):
         """
@@ -225,10 +235,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.viewer.addItem(g)
         return
 
-    def make_3D_plot(self):
+    def make_3D_plot(self, column):
         """
         Generate interactive 3D plot
         """
+        # save new desired column
+        self.page4_column = column
         # clear gl of preexisting scatter
         if self.currentScatter: # remove any preexisting scatter
             self.viewer.removeItem(self.currentScatter)
@@ -236,15 +248,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.log_data_df is None:
             print("Log Data df empty")
             return
-        plot_subset = self.log_data_df
+        df = self.log_data_df
         if bool(self.page4_checkBox_laseron.checkState()):
-            plot_subset = plot_subset[
-                plot_subset["laser_on_time(ms)"] > 200
+            df = df[
+                df["laser_on_time(ms)"] > 200
             ]
         else:
             pass
         
-        coords, colours = self.threeDeePlotVals(plot_subset)
+        coords, colours = self.threeDeePlotVals(df, self.page4_column)
         scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
         scatter.setGLOptions('opaque')
         self.viewer.addItem(scatter)
@@ -252,10 +264,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.currentScatter=scatter # save current scatter
         return
 
-    def threeDeePlotVals(self, df, partFrame=False,alpha=0.5):
+    def threeDeePlotVals(self, df, column, partFrame=False,alpha=0.5):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
-        24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
         """
         # get spatial coords
         if bool(self.plot_laser_on.checkState()) and partFrame: # only part frame coordinates if possible
@@ -264,8 +275,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             coords=df[['x','y','z']].to_numpy()
 
+        # TODO check columnname is valid
         # now colours. These need to be converted to (N,4) RGBA array
-        vals = df['flowWatch'].to_numpy() # extract values
+        vals = df[column].to_numpy() # extract values
         # normalise values to [0,1]
         if np.unique(vals).shape[0]==1: # if constant
             pass
@@ -447,7 +459,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def reload_file(self):
         """
-        Used to reload data, when preprocess checkbox status changes
+        Reloads data, for when preprocess checkbox status changes
         """
         if self.lastFile: # if previous file exists
             preprocess = bool(self.preprocess_file_checkbox.checkState())

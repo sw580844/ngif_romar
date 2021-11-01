@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>880</width>
+    <width>1011</width>
     <height>617</height>
    </rect>
   </property>
@@ -88,7 +88,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -278,38 +278,57 @@
            <rect>
             <x>2</x>
             <y>4</y>
-            <width>701</width>
-            <height>561</height>
+            <width>782</width>
+            <height>627</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="page4_pushbutton_makeplot">
-             <property name="minimumSize">
-              <size>
-               <width>699</width>
-               <height>23</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Make 3D Plot</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="page4_checkBox_laseron">
-             <property name="text">
-              <string>Plot only when laser on</string>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="0" column="3">
+              <widget class="QPushButton" name="page4_pushButton_glassTemp">
+               <property name="text">
+                <string>Protection glass temperature</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="page4_pushButton_poolTemp">
+               <property name="text">
+                <string>Meltpool temperature</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="page4_pushButton_poolSize">
+               <property name="text">
+                <string>Meltpool size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="page4_pushButton_flowWatch">
+               <property name="text">
+                <string>Meltpowder flow</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="4" column="0">
             <widget class="QWidget" name="page4_centre" native="true">
              <property name="minimumSize">
               <size>
                <width>699</width>
                <height>507</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="page4_checkBox_laseron">
+             <property name="text">
+              <string>Plot only when laser on</string>
              </property>
             </widget>
            </item>
@@ -327,7 +346,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>880</width>
+     <width>1011</width>
      <height>21</height>
     </rect>
    </property>
