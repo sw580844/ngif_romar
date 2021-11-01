@@ -27,8 +27,8 @@ from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox
 )
 from PyQt5.uic import loadUi
+import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-
 
 # Extra includes so py2exe picks them up, presumably this can be done elsehwere
 import cv2
@@ -235,9 +235,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.viewer.addItem(g)
         return
 
-    def make_3D_plot(self, column):
+    def make_3D_plot(self, column, alpha=0.5):
         """
         Generate interactive 3D plot
+        TODO: add color bar. This is a little tricky and will require replacing the central
+        page 4 widget with an umbrella widget that can contain the 3D plot and 2D colorbar.
+        See https://groups.google.com/g/pyqtgraph/c/PfJvmjIF3Dg/m/QVG9xUGk-zgJ
         """
         # save new desired column
         self.page4_column = column
@@ -256,15 +259,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             pass
         
-        coords, colours = self.threeDeePlotVals(df, self.page4_column)
-        scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
+        coords, vals = self.threeDeePlotVals(df, self.page4_column)
+        cols = cm.plasma(vals) # using the 'plasma' colormap
+        cols = to_rgba_array(cols, alpha)
+        scatter=gl.GLScatterPlotItem(pos=coords, color=cols, size=3)
         scatter.setGLOptions('opaque')
         self.viewer.addItem(scatter)
     
         self.currentScatter=scatter # save current scatter
         return
 
-    def threeDeePlotVals(self, df, column, partFrame=False,alpha=0.5):
+    def threeDeePlotVals(self, df, column, partFrame=False):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
         """
@@ -274,6 +279,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             coords=df[['xpart','ypart','zpart']].to_numpy()
         else:
             coords=df[['x','y','z']].to_numpy()
+        # translate so median values are at origin, for ease of viewing
+        coords = coords - np.median(coords, axis=0, keepdims=True)
 
         # TODO check columnname is valid
         # now colours. These need to be converted to (N,4) RGBA array
@@ -284,8 +291,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             vals=(vals-np.min(vals))/np.ptp(vals) # -min moves lowest val to 0, division by range sets range to 1
         # then convert to colors using a colormap
-        cols = cm.plasma(vals) # using the 'jet' colormap
-        return coords, to_rgba_array(cols, alpha)
+        return coords, vals
 
 
     def make_arb_var_plots(self):
