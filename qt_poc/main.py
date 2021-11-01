@@ -252,13 +252,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.currentScatter=scatter # save current scatter
         return
 
-    def threeDeePlotVals(df,partFrame=True,alpha=0.5):
+    def threeDeePlotVals(self, df, partFrame=False,alpha=0.5):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
         24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
         """
         # get spatial coords
-        if partFrame:
+        if bool(self.plot_laser_on.checkState()) and partFrame: # only part frame coordinates if possible
+            print("inside partFrame loop")
             coords=df[['xpart','ypart','zpart']].to_numpy()
         else:
             coords=df[['x','y','z']].to_numpy()
