@@ -31,7 +31,6 @@ class Ui_MainWindow(object):
         self.open_file_button.setObjectName("open_file_button")
         self.button_layout.addWidget(self.open_file_button)
         self.preprocess_file_checkbox = QtWidgets.QCheckBox(self.centralwidget)
-        self.preprocess_file_checkbox.setChecked(True)
         self.preprocess_file_checkbox.setObjectName("preprocess_file_checkbox")
         self.button_layout.addWidget(self.preprocess_file_checkbox)
         self.combo_box_select_page = QtWidgets.QComboBox(self.centralwidget)
@@ -196,7 +195,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -204,7 +203,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "Commands"))
         self.open_file_button.setText(_translate("MainWindow", "Open File"))
-        self.preprocess_file_checkbox.setText(_translate("MainWindow", "Preprocess files"))
+        self.preprocess_file_checkbox.setText(_translate("MainWindow", "Preprocess file"))
         self.combo_box_select_page.setCurrentText(_translate("MainWindow", "Summary plots"))
         self.combo_box_select_page.setItemText(0, _translate("MainWindow", "Summary plots"))
         self.combo_box_select_page.setItemText(1, _translate("MainWindow", "Per toolpath plots"))
@@ -226,3 +225,13 @@ class Ui_MainWindow(object):
         self.page3_bottomleft.setText(_translate("MainWindow", "TextLabel"))
         self.page4_pushbutton_makeplot.setText(_translate("MainWindow", "Make 3D Plot"))
         self.page4_checkBox_laseron.setText(_translate("MainWindow", "Plot only when laser on"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

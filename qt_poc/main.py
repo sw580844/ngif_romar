@@ -42,16 +42,16 @@ from matplotlib import cm
 
 from main_window_ui import Ui_MainWindow
 
-
 try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
     # If not in path/installed, use relative import
-    #module_path = os.path.abspath(os.path.join("../../"))
+    module_path = os.path.abspath(os.path.join("../ngif_romar"))
     # hard coded
-    module_path = r"C:\Users\uqthirsc\Repos\Code\ngif_romar"
+    #module_path = r"C:\Users\uqthirsc\Repos\Code\ngif_romar"
     sys.path.append(module_path)
     from ngif_romar import tools
+
 
 
 
@@ -91,6 +91,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_box_select_page.currentIndexChanged.connect( # change page to the value stored in the combo box
             self.stackedWidget.setCurrentIndex
         )
+        self.preprocess_file_checkbox.stateChanged.connect(self.reload_file) # reload if preprocess status changed
+
         # Default stacked: zero page
         self.stackedWidget.setCurrentIndex(0)
         # Arbitrary plotting buttons etc
@@ -128,12 +130,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.default_data_dir = os.path.dirname(os.path.abspath(args.default_data_file))
         else:
             self.default_data_dir = None
-
+ 
         self.setup_plot_areas()
 
         self.currentScatter = None # gl scatter object, initially blank
         self.lastDir = None # last visited directory, for reference when loading files
-
+        self.lastFile = None # last loaded file, for reloading
 
     def setup_plot_areas(self):
         """
@@ -403,36 +405,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Note, pandas rolling has a backwards facing window, and resample has an even window
             # https://pandas.pydata.org/pandas-docs/version/1.1.5/user_guide/computation.html
             # Rework, warning about setting values on copy of slice
-            plot_subset["t_datetime"] = pd.to_datetime(plot_subset["t(s)"], unit="s")
+            plot_subset["t_datetime"] = pd.to_datetime(plot_subset["t"], unit="ms")
             # plot_subset = plot_subset.set_index(plot_subset["t_datetime"])
             plot_subset = plot_subset.rolling(
                 "{}ms".format(rolling_mean_window), on="t_datetime"
             ).mean()
 
+        if not bool(self.preprocess_file_checkbox.checkState()): # if not preprocessing, we won't have access to t (min) and must plot in milliseconds
+            xcolumn = "t"
+            xlabel = "Time (ms)"
+        else:
+            xcolumn = "t(min)"
+            xlabel = "Time (min)"
+
         self.ax1.cla()
-        self.ax1.plot(plot_subset["t(min)"], plot_subset["meltpoolSize"])
-        self.ax1.set_xlabel("Time (min)")
+        self.ax1.plot(plot_subset[xcolumn], plot_subset["meltpoolSize"])
+        self.ax1.set_xlabel(xlabel)
         self.ax1.set_ylabel("Meltpool size (pix)")
         self.ax1.set_title("Meltpool size over time")
         # self.plot_fig_1.tight_layout()
         self.plotWidget_1.draw()
 
         self.ax2.cla()
-        self.ax2.plot(plot_subset["t(min)"], plot_subset["flowWatch"])
-        self.ax2.set_xlabel("Time (min)")
+        self.ax2.plot(plot_subset[xcolumn], plot_subset["flowWatch"])
+        self.ax2.set_xlabel(xlabel)
         self.ax2.set_ylabel("Flow watch sensor (AU)")
         self.ax2.set_title("Flow watch sensor over time")
         # self.plot_fig_2.tight_layout()
         self.plotWidget_2.draw()
 
         self.ax3.cla()
-        self.ax3.plot(plot_subset["t(min)"], plot_subset["protectionGlasTemperature"])
-        self.ax3.set_xlabel("Time (min)")
+        self.ax3.plot(plot_subset[xcolumn], plot_subset["protectionGlasTemperature"])
+        self.ax3.set_xlabel(xlabel)
         self.ax3.set_ylabel("Protection glass temp (degC)")
         self.ax3.set_title("Protection glass temperature")
         # self.plot_fig_3.tight_layout()
         self.plotWidget_3.draw()
 
+        return
+
+    def reload_file(self):
+        """
+        Used to reload data, when preprocess checkbox status changes
+        """
+        if self.lastFile: # if previous file exists
+            preprocess = bool(self.preprocess_file_checkbox.checkState())
+            self.load_and_proc_file(self.lastFile, preprocess)
+        
         return
 
     def load_file(self):
@@ -451,6 +470,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if file_path: # if file chosen
             print("file_path is {}".format(file_path))
             self.lastDir = Path(file_path).parent
+            self.lastFile = Path(file_path) # save filepath for reloading
             self.load_and_proc_file(file_path, preprocess)
 
         return
@@ -459,8 +479,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Given path to data file, loads and optionally preprocesses using methods in ngif_romar.tools
         """
+        print("Reading data")
         self.metadata_dict, self.log_data_df = tools.read_data(file_path)
-
+    
         if preprocess:
             print("Preprocessing")
             self.log_data_df = tools.post_process_log_data(self.log_data_df)

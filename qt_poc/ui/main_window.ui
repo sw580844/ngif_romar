@@ -39,10 +39,7 @@
         <item>
          <widget class="QCheckBox" name="preprocess_file_checkbox">
           <property name="text">
-           <string>Preprocess files</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
+           <string>Preprocess file</string>
           </property>
          </widget>
         </item>
@@ -91,7 +88,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>3</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
