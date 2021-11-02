@@ -9,10 +9,12 @@ Also page 168/178 of matplotlib for python developers
 TODO: Check https://www.riverbankcomputing.com/static/Docs/PyQt5/designer.html and other sources
 for better ways of incorporating custom widgets in designer
 
+2021-11-02
+Single toolpath plots are placed in their own widget
+
 """
 
 
-import re
 import sys
 import os
 import argparse
@@ -24,9 +26,9 @@ import pandas as pd
 # from PySide2.QtCore import QFile
 
 # PyQt stuff (Scott uses Pyside, commented out above)
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
-    QApplication, QDialog, QMainWindow, QMessageBox
+    QApplication, QMainWindow
 )
 from PyQt5.uic import loadUi
 import pyqtgraph as pg
@@ -43,6 +45,9 @@ from matplotlib.colors import to_rgba_array
 from matplotlib import cm
 
 from main_window_ui import Ui_MainWindow
+
+from single_toolpaths_plots_code import SingleToolpathPlotsForm
+
 
 try:
     from ngif_romar import tools
@@ -137,6 +142,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lastDir = None # last visited directory, for reference when loading files
         self.lastFile = None # last loaded file, for reloading
         self.page4_column = None # desired column to plot in 3D plotting
+        self.current_scatter = None # gl scatter object, initially blank
+        self.last_dir = None # last visited directory, for reference when loading files
+
+        # Set up the single toolpath plot page
+        # There are several ways to do this, but I'm not sure how to use the promote to one,
+        # so I'm doing the more obvious way here
+        # TODO: Find out how to do using 'promote to' in QT Designer, that should make this
+        # section not required
+        single_toolpath_plots_form_widget = SingleToolpathPlotsForm(
+            self.single_toolpath_page_element
+        )
+        # TODO: Terrible hack, connect this better with signals/slots/whatever
+        # Or use a singleton for data
+        single_toolpath_plots_form_widget.link_to_main = self
+        self.gridLayout_9.addWidget(single_toolpath_plots_form_widget)
+
 
     def setup_plot_areas(self):
         """

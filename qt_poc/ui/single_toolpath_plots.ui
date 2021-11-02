@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
-    <height>490</height>
+    <width>784</width>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,7 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="2">
-      <widget class="QWidget" name="plot_br" native="true"/>
-     </item>
-     <item row="0" column="1">
+     <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QLabel" name="label">
@@ -29,38 +26,103 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Select toolpath</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Select toolpath</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox"/>
+          <widget class="QSlider" name="horizontal_slider_select_toolpath">
+           <property name="minimum">
+            <number>-1</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksBelow</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="push_button_make_plots">
          <property name="text">
           <string>Make plots</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="push_button_repopulate_variables">
+         <property name="text">
+          <string>Repopulate variables</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Minimum laser time (ms)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spin_box_laser_on_time_thresh">
+           <property name="maximum">
+            <number>5000</number>
+           </property>
+           <property name="singleStep">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
-     </item>
-     <item row="1" column="1">
-      <widget class="QWidget" name="plot_bl" native="true"/>
      </item>
      <item row="0" column="2">
       <widget class="QWidget" name="plot_tr" native="true"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QWidget" name="plot_br" native="true"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QWidget" name="plot_bl" native="true"/>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>horizontal_slider_select_toolpath</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_3</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>410</x>
+     <y>115</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>105</x>
+     <y>116</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
