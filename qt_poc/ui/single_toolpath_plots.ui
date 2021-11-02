@@ -52,7 +52,7 @@
       </layout>
      </item>
      <item row="1" column="1">
-      <widget class="QWidget" name="widget_2" native="true"/>
+      <widget class="QWidget" name="plot_bl" native="true"/>
      </item>
      <item row="0" column="2">
       <widget class="QWidget" name="plot_tr" native="true"/>

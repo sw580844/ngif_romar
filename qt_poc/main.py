@@ -130,17 +130,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.log_data_df = None
 
-        # Handle default data dir if specified
-        if args.default_data_dir and not args.default_data_file:
-            self.default_data_dir = os.path.abspath(args.default_data_dir)
-            if not os.path.exists(self.default_data_dir):
-                print("Default data dir specified but does not exist: '{}'".format(
-                    self.default_data_dir))
-                raise ValueError
-        elif args.default_data_file:
-            self.default_data_dir = os.path.dirname(os.path.abspath(args.default_data_file))
-        else:
-            self.default_data_dir = None
  
         self.setup_plot_areas()
 

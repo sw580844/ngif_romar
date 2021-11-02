@@ -283,13 +283,8 @@
            <rect>
             <x>2</x>
             <y>4</y>
-<<<<<<< HEAD
             <width>701</width>
             <height>564</height>
-=======
-            <width>782</width>
-            <height>627</height>
->>>>>>> fd454aca60647178e97260495702f8f7b9265991
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
@@ -381,13 +376,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-<<<<<<< HEAD
      <width>880</width>
      <height>22</height>
-=======
-     <width>1011</width>
-     <height>21</height>
->>>>>>> fd454aca60647178e97260495702f8f7b9265991
     </rect>
    </property>
   </widget>
