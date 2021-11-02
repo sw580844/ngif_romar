@@ -28,8 +28,9 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox
 )
+from PyQt5.uic import loadUi
+import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-
 
 # Extra includes so py2exe picks them up, presumably this can be done elsehwere
 import cv2
@@ -43,7 +44,6 @@ from matplotlib import cm
 
 from main_window_ui import Ui_MainWindow
 
-
 try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
@@ -51,6 +51,7 @@ except ModuleNotFoundError as error:
     module_path = os.path.abspath(os.path.join(".."))
     sys.path.append(module_path)
     from ngif_romar import tools
+
 
 
 
@@ -93,13 +94,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_box_select_page.currentIndexChanged.connect(
             self.stackedWidget.setCurrentIndex
         )
+        self.preprocess_file_checkbox.stateChanged.connect(self.reload_file) # reload if preprocess status changed
+
         # Default stacked: zero page
         self.stackedWidget.setCurrentIndex(0)
         # Arbitrary plotting buttons etc
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
         # 3D plot button
-        self.page4_pushbutton_makeplot.clicked.connect(self.make_3d_plot)
+        self.page4_checkBox_laseron.setEnabled(False) # initially grey out laser on, because processing required
+        self.preprocess_file_checkbox.toggled.connect(self.page4_checkBox_laseron.setEnabled) # enabled 'laser on' plotting when preprocessing
+        self.preprocess_file_checkbox.toggled.connect(
+            lambda checked: not checked and self.page4_checkBox_laseron.setChecked(False) and self.page4_checkBox_laseron.setEnabled(False) # disable 'laser on' when not preprocessing
+        )
+        self.page4_checkBox_laseron.stateChanged.connect(lambda: self.make_3D_plot(self.page4_column)) # refresh 3D plot when laser status changed
+        self.page4_pushButton_glassTemp.clicked.connect(lambda: self.make_3D_plot("protectionGlasTemperature"))
+        self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3D_plot("meltpoolTemp"))
+        self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3D_plot("meltpoolSize"))
+        self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3D_plot("flowWatch"))
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -118,11 +130,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.log_data_df = None
 
+        # Handle default data dir if specified
+        if args.default_data_dir and not args.default_data_file:
+            self.default_data_dir = os.path.abspath(args.default_data_dir)
+            if not os.path.exists(self.default_data_dir):
+                print("Default data dir specified but does not exist: '{}'".format(
+                    self.default_data_dir))
+                raise ValueError
+        elif args.default_data_file:
+            self.default_data_dir = os.path.dirname(os.path.abspath(args.default_data_file))
+        else:
+            self.default_data_dir = None
+ 
         self.setup_plot_areas()
 
-        self.current_scatter = None # gl scatter object, initially blank
-        self.last_dir = None # last visited directory, for reference when loading files
-
+        self.currentScatter = None # gl scatter object, initially blank
+        self.lastDir = None # last visited directory, for reference when loading files
+        self.lastFile = None # last loaded file, for reloading
+        self.page4_column = None # desired column to plot in 3D plotting
 
     def setup_plot_areas(self):
         """
@@ -214,10 +239,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.viewer.addItem(grid_3d_plot)
         return
 
-    def make_3d_plot(self):
+    def make_3D_plot(self, column, alpha=0.5):
         """
         Generate interactive 3D plot
+        TODO: add color bar. This is a little tricky and will require replacing the central
+        page 4 widget with an umbrella widget that can contain the 3D plot and 2D colorbar.
+        See https://groups.google.com/g/pyqtgraph/c/PfJvmjIF3Dg/m/QVG9xUGk-zgJ
         """
+        # save new desired column
+        self.page4_column = column
         # clear gl of preexisting scatter
         if self.current_scatter: # remove any preexisting scatter
             self.viewer.removeItem(self.current_scatter)
@@ -225,35 +255,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.log_data_df is None:
             print("Log Data df empty")
             return
-        plot_subset = self.log_data_df
+        df = self.log_data_df
         if bool(self.page4_checkBox_laseron.checkState()):
-            plot_subset = plot_subset[
-                plot_subset["laser_on_time(ms)"] > 200
+            df = df[
+                df["laser_on_time(ms)"] > 200
             ]
         else:
             pass
-
-        coords, colours = self.three_d_plot_vals(plot_subset)
-        scatter=gl.GLScatterPlotItem(pos=coords, color=colours, size=1)
+        
+        coords, vals = self.threeDeePlotVals(df, self.page4_column)
+        cols = cm.plasma(vals) # using the 'plasma' colormap
+        cols = to_rgba_array(cols, alpha)
+        scatter=gl.GLScatterPlotItem(pos=coords, color=cols, size=3)
         scatter.setGLOptions('opaque')
         self.viewer.addItem(scatter)
 
         self.current_scatter=scatter # save current scatter
         return
 
-    def three_d_plot_vals(self, this_df, use_part_frame=True, alpha=0.5):
+    def threeDeePlotVals(self, df, column, partFrame=False):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
-        24/10/21 TODO: currently hard coded to FlowWatch for demo purposes
         """
         # get spatial coords
-        if use_part_frame:
-            coords=this_df[['xpart','ypart','zpart']].to_numpy()
+        if bool(self.plot_laser_on.checkState()) and partFrame: # only part frame coordinates if possible
+            print("inside partFrame loop")
+            coords=df[['xpart','ypart','zpart']].to_numpy()
         else:
-            coords=this_df[['x','y','z']].to_numpy()
+            coords=df[['x','y','z']].to_numpy()
+        # translate so median values are at origin, for ease of viewing
+        coords = coords - np.median(coords, axis=0, keepdims=True)
 
+        # TODO check columnname is valid
         # now colours. These need to be converted to (N,4) RGBA array
-        vals = this_df['flowWatch'].to_numpy() # extract values
+        vals = df[column].to_numpy() # extract values
         # normalise values to [0,1]
         if np.unique(vals).shape[0]==1: # if constant
             pass
@@ -261,8 +296,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # -min moves lowest val to 0, division by range sets range to 1
             vals=(vals-np.min(vals))/np.ptp(vals)
         # then convert to colors using a colormap
-        cols = cm.plasma(vals) # using the 'jet' colormap
-        return coords, to_rgba_array(cols, alpha)
+        return coords, vals
 
 
     def make_arb_var_plots(self):
@@ -395,36 +429,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Note, pandas rolling has a backwards facing window, and resample has an even window
             # https://pandas.pydata.org/pandas-docs/version/1.1.5/user_guide/computation.html
             # Rework, warning about setting values on copy of slice
-            plot_subset["t_datetime"] = pd.to_datetime(plot_subset["t(s)"], unit="s")
+            plot_subset["t_datetime"] = pd.to_datetime(plot_subset["t"], unit="ms")
             # plot_subset = plot_subset.set_index(plot_subset["t_datetime"])
             plot_subset = plot_subset.rolling(
                 "{}ms".format(rolling_mean_window), on="t_datetime"
             ).mean()
 
+        if not bool(self.preprocess_file_checkbox.checkState()): # if not preprocessing, we won't have access to t (min) and must plot in milliseconds
+            xcolumn = "t"
+            xlabel = "Time (ms)"
+        else:
+            xcolumn = "t(min)"
+            xlabel = "Time (min)"
+
         self.ax1.cla()
-        self.ax1.plot(plot_subset["t(min)"], plot_subset["meltpoolSize"])
-        self.ax1.set_xlabel("Time (min)")
+        self.ax1.plot(plot_subset[xcolumn], plot_subset["meltpoolSize"])
+        self.ax1.set_xlabel(xlabel)
         self.ax1.set_ylabel("Meltpool size (pix)")
         self.ax1.set_title("Meltpool size over time")
         # self.plot_fig_1.tight_layout()
         self.plot_widget_1.draw()
 
         self.ax2.cla()
-        self.ax2.plot(plot_subset["t(min)"], plot_subset["flowWatch"])
-        self.ax2.set_xlabel("Time (min)")
+        self.ax2.plot(plot_subset[xcolumn], plot_subset["flowWatch"])
+        self.ax2.set_xlabel(xlabel)
         self.ax2.set_ylabel("Flow watch sensor (AU)")
         self.ax2.set_title("Flow watch sensor over time")
         # self.plot_fig_2.tight_layout()
         self.plot_widget_2.draw()
 
         self.ax3.cla()
-        self.ax3.plot(plot_subset["t(min)"], plot_subset["protectionGlasTemperature"])
-        self.ax3.set_xlabel("Time (min)")
+        self.ax3.plot(plot_subset[xcolumn], plot_subset["protectionGlasTemperature"])
+        self.ax3.set_xlabel(xlabel)
         self.ax3.set_ylabel("Protection glass temp (degC)")
         self.ax3.set_title("Protection glass temperature")
         # self.plot_fig_3.tight_layout()
         self.plot_widget_3.draw()
 
+        return
+
+    def reload_file(self):
+        """
+        Reloads data, for when preprocess checkbox status changes
+        """
+        if self.lastFile: # if previous file exists
+            preprocess = bool(self.preprocess_file_checkbox.checkState())
+            self.load_and_proc_file(self.lastFile, preprocess)
+        
         return
 
     def load_file(self):
@@ -444,7 +495,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if file_path: # if file chosen
             print("file_path is {}".format(file_path))
-            self.last_dir = Path(file_path).parent
+            self.lastDir = Path(file_path).parent
+            self.lastFile = Path(file_path) # save filepath for reloading
             self.load_and_proc_file(file_path, preprocess)
 
         return
@@ -454,8 +506,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Given path to data file, loads and optionally preprocesses using methods in
         ngif_romar.tools
         """
+        print("Reading data")
         self.metadata_dict, self.log_data_df = tools.read_data(file_path)
-
+    
         if preprocess:
             print("Preprocessing")
             self.log_data_df = tools.post_process_log_data(self.log_data_df)
