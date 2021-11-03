@@ -93,7 +93,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>4</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -196,13 +196,6 @@
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_4" rowstretch="0,0" columnstretch="1,2">
-            <item row="0" column="1">
-             <widget class="QLabel" name="page3_topright">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
@@ -265,13 +258,6 @@
             </item>
             <item row="1" column="1">
              <widget class="QWidget" name="page3_bottomright" native="true"/>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="page3_bottomleft">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </item>
