@@ -8,7 +8,7 @@ It imports the .ui/.py single_toolpath_plots_ui.py
 It will be imported by main_window_ui.py due to use of the promote to button
 
 """
-
+import os
 import typing
 
 
@@ -55,7 +55,8 @@ class SingleToolpathPlotsForm(QtWidgets.QWidget, Ui_SingleToolpathPlots):
         # # Set up other callbacks, etc
         self.push_button_repopulate_variables.clicked.connect(self.repopulate_menus)
         self.push_button_make_plots.clicked.connect(self.make_single_toolpath_plots)
-        # TODO: decided whether to redraw once slider has finished moving or as is, could be 
+        self.pushbutton_save_plots.clicked.connect(self.save_plots)
+        # TODO: decided whether to redraw once slider has finished moving or as is, could be
         # slow etc
         self.horizontal_slider_select_toolpath.valueChanged.connect(self.on_slider_move)
 
@@ -119,7 +120,31 @@ class SingleToolpathPlotsForm(QtWidgets.QWidget, Ui_SingleToolpathPlots):
 
         return
 
+    def save_plots(self):
+        """
+        Saves plots as currently rendered
+        """
+        save_folder_path = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select folder')
+        # Returns None or path
+        if save_folder_path is None or save_folder_path == '':
+            return
+        figs = [
+            self.plot_fig_tr,
+            self.plot_fig_bl,
+            self.plot_fig_br,
+        ]
+        pathkey = self.horizontal_slider_select_toolpath.value()
+        names = [
+            "flowwatch_over_time_for_path_{}".format(pathkey),
+            "poolsize_over_time_for_path_{}".format(pathkey),
+            "pooltemp_over_time_for_path_{}".format(pathkey),
+        ]
+        for name, fig in zip(names, figs):
+            for extension in [".png", ".pdf", ".svg"]:
+                save_path = os.path.join(save_folder_path, name + extension)
+                fig.savefig(save_path)
 
+        return
 
     def make_single_toolpath_plots(self,):
         """
@@ -137,9 +162,9 @@ class SingleToolpathPlotsForm(QtWidgets.QWidget, Ui_SingleToolpathPlots):
         # Assume for testing toolpath key is set
 
 
-
+        pathkey = self.horizontal_slider_select_toolpath.value()
         plot_subset = log_data_df[
-            (log_data_df["toolpath_key"] == self.horizontal_slider_select_toolpath.value())
+            (log_data_df["toolpath_key"] == pathkey)
             & (log_data_df["laser_on_time(ms)"] > self.spin_box_laser_on_time_thresh.value())
         ]
 
@@ -147,18 +172,21 @@ class SingleToolpathPlotsForm(QtWidgets.QWidget, Ui_SingleToolpathPlots):
         self.ax_tr.plot(plot_subset["t(min)"], plot_subset["flowWatch"])
         self.ax_tr.set_xlabel("t(min)")
         self.ax_tr.set_ylabel("Flow watch sensor\n(au)")
+        self.ax_tr.set_title("Flow watch over time\nPath {}".format(pathkey))
         self.plot_widget_tr.draw()
 
         self.ax_bl.cla()
         self.ax_bl.plot(plot_subset["t(min)"], plot_subset["meltpoolSize"])
         self.ax_bl.set_xlabel("t(min)")
         self.ax_bl.set_ylabel("Meltpool size\n(pix)")
+        self.ax_bl.set_title("Meltpool size over time\nPath {}".format(pathkey))
         self.plot_widget_bl.draw()
 
         self.ax_br.cla()
         self.ax_br.plot(plot_subset["t(min)"], plot_subset["meltpoolTemp"])
         self.ax_br.set_xlabel("t(min)")
         self.ax_br.set_ylabel("Meltpool temp.\n(degC)")
+        self.ax_br.set_title("Meltpool temp over time\nPath {}".format(pathkey))
         self.plot_widget_br.draw()
 
 

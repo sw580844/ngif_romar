@@ -95,7 +95,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
         self.make_plots_button.clicked.connect(self.make_plots)
+        self.page1_pushbutton_save_summary_plots.clicked.connect(self.save_summary_plots)
         self.pushButton_make_toolpath_plots.clicked.connect(self.make_toolpath_plots)
+        self.page2_pushbutton_save_toolpath_plots.clicked.connect(self.save_toolpath_plots)
         # change page to the value stored in the combo box
         self.combo_box_select_page.currentIndexChanged.connect(
             self.stackedWidget.setCurrentIndex
@@ -108,6 +110,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Arbitrary plotting buttons etc
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
+        self.page3_pushbutton_save_arb_var_plot.clicked.connect(self.save_arb_var_plot)
         # 3D plot button
         # initially grey out laser on, because processing required
         self.page4_checkBox_laseron.setEnabled(False)
@@ -317,6 +320,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # then convert to colors using a colormap
         return coords, vals
 
+    def save_arb_var_plot(self):
+        """
+        When triggered, opens a modal dialog and saves the currently rendered arb var plot
+
+        """
+        file_path, selected_filter = QtWidgets.QFileDialog.getSaveFileName(
+            self, # Parent
+            "Save File", # Title of dialog
+            filter="PNG (*.png);;PDF (*.pdf);;SVG (*.svg)"
+        )
+        # If cancelled
+        if file_path == '':
+            return
+        # Now save plot as currently rendered
+
+        self.arb_var_plotting_objects[0].savefig(file_path)
+        return
+
+
 
     def make_arb_var_plots(self):
         """
@@ -372,6 +394,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.arb_var_plotting_objects[2].draw()
         return
 
+    def save_toolpath_plots(self):
+        """
+        Saves toolpath plots as currently rendered
+        """
+        save_folder_path = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select folder')
+        # Returns None or path
+        if save_folder_path is None or save_folder_path == '':
+            return
+        figs = [
+            self.toolpath_plots_dict["poolsize_per_toolpath"][0],
+            self.toolpath_plots_dict["pooltemp_per_toolpath"][0],
+            self.toolpath_plots_dict["flowwatch_per_toolpath"][0],
+        ]
+        # Could also use names to address figs above, but not sure about that coupling
+        names = [
+            "poolsize_per_toolpath",
+            "pooltemp_per_toolpath",
+            "flowwatch_per_toolpath",
+        ]
+        for name, fig in zip(names, figs):
+            for extension in [".png", ".pdf", ".svg"]:
+                save_path = os.path.join(save_folder_path, name + extension)
+                fig.savefig(save_path)
+        return 
 
     def make_toolpath_plots(self):
         """
@@ -450,6 +496,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ax.set_title("Flow watch per toolpath")
         self.toolpath_canvas_dict["flowwatch_per_toolpath"].draw()
 
+        return
+
+
+    def save_summary_plots(self):
+        """
+        Callback func to save the summary plots as rendered
+        Saves all into a folder
+        """
+        save_folder_path = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select folder')
+        # Returns None or path
+        if save_folder_path is None or save_folder_path == '':
+            return
+        figs = [self.plot_fig_1, self.plot_fig_2, self.plot_fig_3]
+        names = ["meltpool_size", "flow_watch", "protection_glass_temp"]
+        for name, fig in zip(names, figs):
+            for extension in [".png", ".pdf", ".svg"]:
+                save_path = os.path.join(save_folder_path, name + extension)
+                fig.savefig(save_path)
         return
 
 
