@@ -1,8 +1,10 @@
 """
 2021-09-24 Quick Pyside/QT POC
 
-Also check https://stackoverflow.com/questions/43947318/plotting-matplotlib-figure-inside-qwidget-using-qt-designer-form-and-pyqt5
-to make sure the process for taking a blank widget and turning into a matplotlib plot is appropriate
+Also check
+https://stackoverflow.com/questions/43947318/plotting-matplotlib-figure-inside-qwidget-using-qt-designer-form-and-pyqt5
+to make sure the process for taking a blank widget and turning into a matplotlib plot is
+appropriate
 
 Also page 168/178 of matplotlib for python developers
 
@@ -30,7 +32,6 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow
 )
-from PyQt5.uic import loadUi
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
@@ -99,7 +100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_box_select_page.currentIndexChanged.connect(
             self.stackedWidget.setCurrentIndex
         )
-        self.preprocess_file_checkbox.stateChanged.connect(self.reload_file) # reload if preprocess status changed
+        # reload if preprocess status changed
+        self.preprocess_file_checkbox.stateChanged.connect(self.reload_file)
 
         # Default stacked: zero page
         self.stackedWidget.setCurrentIndex(0)
@@ -107,16 +109,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.page3_pushbutton_repopulate.clicked.connect(self.populate_arb_var_combo_boxes)
         self.page3_pushbutton_makeplots.clicked.connect(self.make_arb_var_plots)
         # 3D plot button
-        self.page4_checkBox_laseron.setEnabled(False) # initially grey out laser on, because processing required
-        self.preprocess_file_checkbox.toggled.connect(self.page4_checkBox_laseron.setEnabled) # enabled 'laser on' plotting when preprocessing
+        # initially grey out laser on, because processing required
+        self.page4_checkBox_laseron.setEnabled(False)
+        self.preprocess_file_checkbox.toggled.connect(
+            self.page4_checkBox_laseron.setEnabled
+        ) # enabled 'laser on' plotting when preprocessing
         self.preprocess_file_checkbox.toggled.connect(
             lambda checked: not checked and self.page4_checkBox_laseron.setChecked(False) and self.page4_checkBox_laseron.setEnabled(False) # disable 'laser on' when not preprocessing
         )
-        self.page4_checkBox_laseron.stateChanged.connect(lambda: self.make_3D_plot(self.page4_column)) # refresh 3D plot when laser status changed
-        self.page4_pushButton_glassTemp.clicked.connect(lambda: self.make_3D_plot("protectionGlasTemperature"))
-        self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3D_plot("meltpoolTemp"))
-        self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3D_plot("meltpoolSize"))
-        self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3D_plot("flowWatch"))
+        self.page4_checkBox_laseron.stateChanged.connect(
+            lambda: self.make_3d_plot(self.page4_column)
+        ) # refresh 3D plot when laser status changed
+        self.page4_pushButton_glassTemp.clicked.connect(
+            lambda: self.make_3d_plot("protectionGlasTemperature")
+        )
+        self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3d_plot("meltpoolTemp"))
+        self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3d_plot("meltpoolSize"))
+        self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3d_plot("flowWatch"))
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt
@@ -135,15 +144,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.log_data_df = None
 
- 
+
         self.setup_plot_areas()
 
-        self.currentScatter = None # gl scatter object, initially blank
-        self.lastDir = None # last visited directory, for reference when loading files
-        self.lastFile = None # last loaded file, for reloading
+        # self.currentScatter = None # gl scatter object, initially blank
+        self.last_dir = None # last visited directory, for reference when loading files
+        self.last_file = None # last loaded file, for reloading
         self.page4_column = None # desired column to plot in 3D plotting
         self.current_scatter = None # gl scatter object, initially blank
-        self.last_dir = None # last visited directory, for reference when loading files
 
         # Set up the single toolpath plot page
         # There are several ways to do this, but I'm not sure how to use the promote to one,
@@ -249,7 +257,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.viewer.addItem(grid_3d_plot)
         return
 
-    def make_3D_plot(self, column, alpha=0.5):
+    def make_3d_plot(self, column, alpha=0.5):
         """
         Generate interactive 3D plot
         TODO: add color bar. This is a little tricky and will require replacing the central
@@ -265,15 +273,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.log_data_df is None:
             print("Log Data df empty")
             return
-        df = self.log_data_df
+        this_df = self.log_data_df
         if bool(self.page4_checkBox_laseron.checkState()):
-            df = df[
-                df["laser_on_time(ms)"] > 200
+            this_df = this_df[
+                this_df["laser_on_time(ms)"] > 200
             ]
         else:
             pass
-        
-        coords, vals = self.threeDeePlotVals(df, self.page4_column)
+
+        coords, vals = self.three_d_plot_vals(this_df, self.page4_column)
         cols = cm.plasma(vals) # using the 'plasma' colormap
         cols = to_rgba_array(cols, alpha)
         scatter=gl.GLScatterPlotItem(pos=coords, color=cols, size=3)
@@ -283,22 +291,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_scatter=scatter # save current scatter
         return
 
-    def threeDeePlotVals(self, df, column, partFrame=False):
+    def three_d_plot_vals(self, input_df, column, use_part_frame=False):
         """
         Generates coordinates and colours for gl scatterplot from dataframe
         """
         # get spatial coords
-        if bool(self.plot_laser_on.checkState()) and partFrame: # only part frame coordinates if possible
+        # only part frame coordinates if possible
+        if bool(self.plot_laser_on.checkState()) and use_part_frame:
             print("inside partFrame loop")
-            coords=df[['xpart','ypart','zpart']].to_numpy()
+            coords=input_df[['xpart','ypart','zpart']].to_numpy()
         else:
-            coords=df[['x','y','z']].to_numpy()
+            coords=input_df[['x','y','z']].to_numpy()
         # translate so median values are at origin, for ease of viewing
         coords = coords - np.median(coords, axis=0, keepdims=True)
 
         # TODO check columnname is valid
         # now colours. These need to be converted to (N,4) RGBA array
-        vals = df[column].to_numpy() # extract values
+        vals = input_df[column].to_numpy() # extract values
         # normalise values to [0,1]
         if np.unique(vals).shape[0]==1: # if constant
             pass
@@ -328,11 +337,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         x_col = columns[self.combo_box_arb_var_x.currentIndex()]
         y_col = columns[self.combo_box_arb_var_y.currentIndex()]
 
+        # Get thresholds from sliders
+        # Sliders are on scale of 0 to 100, so do in terms of min and max
+        # Could work on percentiles as well, but would like to discuss that first
+        x_min_thresh_idx = self.horizontal_slider_arb_var_x_min_thresh.value()
+        x_max_thresh_idx = self.horizontal_slider_arb_var_x_max_thresh.value()
+        y_min_thresh_idx = self.horizontal_slider_arb_var_y_min_thresh.value()
+        y_max_thresh_idx = self.horizontal_slider_arb_var_y_max_thresh.value()
+        x_delta = np.max(plot_subset[x_col]) - np.min(plot_subset[x_col])
+        y_delta = np.max(plot_subset[y_col]) - np.min(plot_subset[y_col])
+        x_min = np.min(plot_subset[x_col]) + x_min_thresh_idx/99 * x_delta
+        x_max = np.min(plot_subset[x_col]) + x_max_thresh_idx/99 * x_delta
+        y_min = np.min(plot_subset[y_col]) + y_min_thresh_idx/99 * y_delta
+        y_max = np.min(plot_subset[y_col]) + y_max_thresh_idx/99 * y_delta
+        plot_subset = plot_subset[
+            (plot_subset[x_col] >= x_min)
+            & (plot_subset[x_col] <= x_max)
+            & (plot_subset[y_col] >= y_min)
+            & (plot_subset[y_col] <= y_max)
+        ]
+
         ax = self.arb_var_plotting_objects[1]
         ax.cla()
         ax.plot(plot_subset[x_col], plot_subset[y_col])
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
+        # Draw on the thresholds
+        ax.axvline(x_min, label="X min", linestyle="--", color="#648FFF")
+        ax.axvline(x_max, label="X max", linestyle="--", color="#785EF0")
+        ax.axhline(y_min, label="Y min", linestyle="--", color="#DC267F")
+        ax.axhline(y_max, label="Y max", linestyle="--", color="#FE6100")
+        ax.set_title("{} vs {}".format(x_col, y_col))
+        self.arb_var_plotting_objects[0].legend()
         self.arb_var_plotting_objects[2].draw()
         return
 
@@ -444,8 +480,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             plot_subset = plot_subset.rolling(
                 "{}ms".format(rolling_mean_window), on="t_datetime"
             ).mean()
-
-        if not bool(self.preprocess_file_checkbox.checkState()): # if not preprocessing, we won't have access to t (min) and must plot in milliseconds
+        # if not preprocessing, we won't have access to t (min) and must plot in milliseconds
+        if not bool(self.preprocess_file_checkbox.checkState()):
             xcolumn = "t"
             xlabel = "Time (ms)"
         else:
@@ -482,10 +518,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Reloads data, for when preprocess checkbox status changes
         """
-        if self.lastFile: # if previous file exists
+        if self.last_file: # if previous file exists
             preprocess = bool(self.preprocess_file_checkbox.checkState())
-            self.load_and_proc_file(self.lastFile, preprocess)
-        
+            self.load_and_proc_file(self.last_file, preprocess)
+
         return
 
     def load_file(self):
@@ -505,8 +541,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if file_path: # if file chosen
             print("file_path is {}".format(file_path))
-            self.lastDir = Path(file_path).parent
-            self.lastFile = Path(file_path) # save filepath for reloading
+            self.last_dir = Path(file_path).parent
+            self.last_file = Path(file_path) # save filepath for reloading
             self.load_and_proc_file(file_path, preprocess)
 
         return
@@ -518,7 +554,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         print("Reading data")
         self.metadata_dict, self.log_data_df = tools.read_data(file_path)
-    
+
         if preprocess:
             print("Preprocessing")
             self.log_data_df = tools.post_process_log_data(self.log_data_df)

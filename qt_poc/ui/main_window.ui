@@ -208,14 +208,14 @@
               <item>
                <widget class="QPushButton" name="page3_pushbutton_repopulate">
                 <property name="text">
-                 <string>Repopulate variables</string>
+                 <string>Refresh controls</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="page3_pushbutton_makeplots">
                 <property name="text">
-                 <string>Make arbitrary variable plots</string>
+                 <string>Draw plots</string>
                 </property>
                </widget>
               </item>
@@ -226,6 +226,13 @@
                 </property>
                </widget>
               </item>
+             </layout>
+            </item>
+            <item row="1" column="1">
+             <widget class="QWidget" name="page3_bottomright" native="true"/>
+            </item>
+            <item row="1" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_7">
                 <item>
@@ -254,10 +261,85 @@
                 </item>
                </layout>
               </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>X min thresh</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="horizontal_slider_arb_var_x_min_thresh">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>X max thresh</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="horizontal_slider_arb_var_x_max_thresh">
+                  <property name="value">
+                   <number>99</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_10">
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>Y min thresh</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="horizontal_slider_arb_var_y_min_thresh">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <item>
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Y max thresh</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="horizontal_slider_arb_var_y_max_thresh">
+                  <property name="value">
+                   <number>99</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
              </layout>
-            </item>
-            <item row="1" column="1">
-             <widget class="QWidget" name="page3_bottomright" native="true"/>
             </item>
            </layout>
           </item>
@@ -349,7 +431,7 @@
      <x>0</x>
      <y>0</y>
      <width>1011</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
