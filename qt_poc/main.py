@@ -92,6 +92,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        # Set up some basic values, here mostly so that last_file can be picked up by
+        # reload_file
+        # self.currentScatter = None # gl scatter object, initially blank
+        self.last_dir = None # last visited directory, for reference when loading files
+        self.last_file = None # last loaded file, for reloading
+        self.page4_column = None # desired column to plot in 3D plotting
+        self.current_scatter = None # gl scatter object, initially blank
+
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
         self.make_plots_button.clicked.connect(self.make_plots)
@@ -144,17 +152,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.load_and_proc_file(
                 os.path.abspath(args.default_data_file), preprocess=True
             )
+            # Set preprocessing checkbox on
+            self.preprocess_file_checkbox.setChecked(True)
         else:
             self.log_data_df = None
 
 
         self.setup_plot_areas()
 
-        # self.currentScatter = None # gl scatter object, initially blank
-        self.last_dir = None # last visited directory, for reference when loading files
-        self.last_file = None # last loaded file, for reloading
-        self.page4_column = None # desired column to plot in 3D plotting
-        self.current_scatter = None # gl scatter object, initially blank
+        
 
         # Set up the single toolpath plot page
         # There are several ways to do this, but I'm not sure how to use the promote to one,
@@ -585,6 +591,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.last_file: # if previous file exists
             preprocess = bool(self.preprocess_file_checkbox.checkState())
             self.load_and_proc_file(self.last_file, preprocess)
+        # If checkbox is checked then turn on all of the fun laser on plotting options, else turn off
+        if self.preprocess_file_checkbox.isChecked():
+            self.plot_laser_on.setCheckable(True)
+            self.page3_checkbox_laser_on.setCheckable(True)
+        else:
+            self.plot_laser_on.setCheckable(False)
+            self.plot_laser_on.setChecked(False)
+            self.page3_checkbox_laser_on.setCheckable(False)
+            self.page3_checkbox_laser_on.setChecked(False)
 
         return
 
