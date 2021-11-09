@@ -55,7 +55,7 @@ try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
     # If not in path/installed, use relative import
-    module_path = os.path.abspath(os.path.join(".."))
+    module_path = os.path.abspath(os.path.join("."))
     sys.path.append(module_path)
     from ngif_romar import tools
 
@@ -140,6 +140,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3d_plot("meltpoolTemp"))
         self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3d_plot("meltpoolSize"))
         self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3d_plot("flowWatch"))
+        self.page4_pushButton_Q.clicked.connect(lambda: self.make_3d_plot("t2"))
 
 
         # Parse command line. TBD whether there's a better way to mix stock python and Qt

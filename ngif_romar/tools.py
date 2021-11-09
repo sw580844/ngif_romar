@@ -16,6 +16,7 @@ import os
 import pandas as pd
 import numpy as np
 import cv2
+from pca import pca
 
 def read_data(data_path):
     """
@@ -266,6 +267,23 @@ def post_process_log_data(data_df):
         return data_df
 
     data_df = add_toolpath_key(data_df)
+
+    def add_t2_score(data_df, rollingWindowSize=10):
+        ''' PCA quality parameter
+            Takes 4 important columns, reduces them to 1 PCA parametet, calculates t2 for that parameter
+            This estimates the variance in those 4 control parameters, but by no means is it 'perfect'. 
+            Please feel free to improve. TH 9/11/2021.'''
+        rolled_df = data_df.copy()
+        columns=['meltpoolSize','meltpoolTemp','flowWatch','protectionGlasTemperature']
+        for c in columns:
+            rolled_df[c] = rolled_df[c].rolling(rollingWindowSize,min_periods=1).mean()
+        model=pca(alpha=0.5,n_components=1) # alpha = threshold for 'outlier' in t2 test. n_components = PCA components
+        out = model.fit_transform(rolled_df[columns])
+        data_df["t2"] = out['outliers']['y_score'].values
+        return data_df
+
+    data_df = add_t2_score(data_df)
+
     # Preprocessing finished
     return data_df
 
