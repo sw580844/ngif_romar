@@ -32,6 +32,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow
 )
+from PyQt5 import QtGui
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
@@ -99,6 +100,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.last_file = None # last loaded file, for reloading
         self.page4_column = None # desired column to plot in 3D plotting
         self.current_scatter = None # gl scatter object, initially blank
+
+        # Set main window icon
+        self.setWindowIcon(QtGui.QIcon(os.path.join("ui", "romar_r.png")))
 
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
