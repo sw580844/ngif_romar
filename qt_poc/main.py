@@ -135,9 +135,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.page4_checkBox_laseron.stateChanged.connect(
             lambda: self.make_3d_plot(self.page4_column)
         ) # refresh 3D plot when laser status changed
-        self.page4_pushButton_glassTemp.clicked.connect(
-            lambda: self.make_3d_plot("protectionGlasTemperature")
-        )
+        # set up ordinary plot buttons
+        self.page4_pushButton_glassTemp.clicked.connect(lambda: self.make_3d_plot("protectionGlasTemperature"))
         self.page4_pushButton_poolTemp.clicked.connect(lambda: self.make_3d_plot("meltpoolTemp"))
         self.page4_pushButton_poolSize.clicked.connect(lambda: self.make_3d_plot("meltpoolSize"))
         self.page4_pushButton_flowWatch.clicked.connect(lambda: self.make_3d_plot("flowWatch"))
