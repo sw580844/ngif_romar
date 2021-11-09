@@ -93,7 +93,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -372,20 +372,23 @@
            <rect>
             <x>2</x>
             <y>4</y>
-            <width>701</width>
+            <width>782</width>
             <height>567</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
+           <item row="4" column="0">
+            <widget class="QWidget" name="page4_centre" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>699</width>
+               <height>507</height>
+              </size>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="0">
             <layout class="QGridLayout" name="gridLayout_8">
-             <item row="0" column="3">
-              <widget class="QPushButton" name="page4_pushButton_glassTemp">
-               <property name="text">
-                <string>Protection glass temperature</string>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="1">
               <widget class="QPushButton" name="page4_pushButton_poolTemp">
                <property name="text">
@@ -400,6 +403,13 @@
                </property>
               </widget>
              </item>
+             <item row="0" column="3">
+              <widget class="QPushButton" name="page4_pushButton_glassTemp">
+               <property name="text">
+                <string>Protection glass temperature</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
               <widget class="QPushButton" name="page4_pushButton_flowWatch">
                <property name="text">
@@ -407,17 +417,14 @@
                </property>
               </widget>
              </item>
+             <item row="0" column="4">
+              <widget class="QPushButton" name="page4_pushButton_Q">
+               <property name="text">
+                <string>Quality Score</string>
+               </property>
+              </widget>
+             </item>
             </layout>
-           </item>
-           <item row="4" column="0">
-            <widget class="QWidget" name="page4_centre" native="true">
-             <property name="minimumSize">
-              <size>
-               <width>699</width>
-               <height>507</height>
-              </size>
-             </property>
-            </widget>
            </item>
            <item row="3" column="0">
             <widget class="QCheckBox" name="page4_checkBox_laseron">
