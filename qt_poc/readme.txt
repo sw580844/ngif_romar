@@ -58,3 +58,7 @@ Should return $env:USERPROFILE\anaconda3\Library\bin\pyuic5.bat
 Open up that batch file, see that it calls @USER/anaconda3\python.exe -m PyQt5.uic.pyuic %1 %2 %3 %4 %5 %6 %7 %8 %9 (with USER subbed in for user profile path)
 
 Do a similar python -m PyQt5.uic.pyuic .\main_window.ui -o temp.py to get similar result to prev
+
+2021-12-03
+
+Rebuild UI with ./build_ui.ps1
