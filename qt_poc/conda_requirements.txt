@@ -1,0 +1,10 @@
+# Create with conda env create --name ngif_qt_poc --file conda_requirements.txt python=3.8
+# Need python 3.8 to satisfy some deps
+numpy
+matplotlib
+pandas
+opencv
+pylint
+pyopengl
+pyqtgraph
+scikit-learn

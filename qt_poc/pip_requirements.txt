@@ -1,0 +1,13 @@
+# Need to pay attention to version of Qt used; atm using 5
+numpy
+matplotlib
+pandas
+opencv
+pylint
+pyqt
+pyopengl
+pyqtgraph
+pyside2
+pyside6
+scikit-learn
+pca
