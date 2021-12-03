@@ -8,3 +8,4 @@ pylint
 pyqt
 pyopengl
 pyqtgraph
+scikit-learn
