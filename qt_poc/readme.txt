@@ -62,3 +62,5 @@ Do a similar python -m PyQt5.uic.pyuic .\main_window.ui -o temp.py to get simila
 2021-12-03
 
 Rebuild UI with ./build_ui.ps1
+
+Due to issues with mixing conda and pip, we'll have a conda requirements file (conda_requirements.txt) and a supplementary pip requirements file (conda_requirements_pip_supplementary.txt)
