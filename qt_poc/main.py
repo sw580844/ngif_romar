@@ -50,12 +50,16 @@ from main_window_ui import Ui_MainWindow
 
 from single_toolpaths_plots_code import SingleToolpathPlotsForm
 
+THIS_FILE_PATH = os.path.abspath(__file__)
 
 try:
     from ngif_romar import tools
 except ModuleNotFoundError as error:
     # If not in path/installed, use relative import
-    module_path = os.path.abspath(os.path.join("."))
+    module_path = os.path.abspath(os.path.join(
+        os.path.split(THIS_FILE_PATH)[0],
+        "..",
+    ))
     sys.path.append(module_path)
     from ngif_romar import tools
 
@@ -102,7 +106,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.current_scatter = None # gl scatter object, initially blank
 
         # Set main window icon
-        self.setWindowIcon(QtGui.QIcon(os.path.join("ui", "romar_r.png")))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(
+            os.path.split(THIS_FILE_PATH)[0],
+            "ui", "romar_r.png"
+        )))
 
         # Set up callbacks
         self.open_file_button.clicked.connect(self.load_file)
